@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clean Ride — Fietswassen</title>
+<style>
+:root{--bg:#090a0d;--card:#12151b;--pink:#ff2f8a;--green:#b8ff35;--blue:#28a9ff;--white:#f5f7fa;--muted:#a9afb9}
+*{box-sizing:border-box;scroll-behavior:smooth}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--white);line-height:1.5}
+a{color:inherit;text-decoration:none}
+nav{position:sticky;top:0;z-index:10;background:rgba(9,10,13,.94);backdrop-filter:blur(10px);border-bottom:1px solid #242832}
+.navin{max-width:1100px;margin:auto;padding:15px 22px;display:flex;align-items:center;justify-content:space-between}
+.logo{font-weight:900;font-size:24px;letter-spacing:1px}.logo span{color:var(--pink)}
+.links{display:flex;gap:22px;font-weight:700}.links a:hover{color:var(--green)}
+.btn{display:inline-block;padding:13px 20px;border-radius:12px;font-weight:900;border:2px solid var(--pink);background:var(--pink);color:#111}.btn.alt{background:transparent;color:var(--white)}
+.hero{min-height:650px;display:flex;align-items:center;background:radial-gradient(circle at 80% 20%,#252c3c 0,#0d1016 35%,var(--bg) 70%);overflow:hidden}
+.hero-in{max-width:1100px;width:100%;margin:auto;padding:80px 22px;display:grid;grid-template-columns:1.1fr .9fr;gap:45px;align-items:center}
+.badge{display:inline-block;border:1px solid #3a414d;padding:7px 12px;border-radius:999px;color:var(--green);font-weight:800}
+h1{font-size:clamp(48px,8vw,88px);line-height:.92;margin:18px 0}.pink{color:var(--pink)}.green{color:var(--green)}
+.hero p{font-size:20px;color:var(--muted);max-width:600px}
+.hero-card{min-height:390px;border-radius:28px;border:1px solid #303743;background:linear-gradient(145deg,#191e27,#0d1015);display:flex;align-items:center;justify-content:center;position:relative;box-shadow:0 25px 80px #000}
+.bike{font-size:150px;filter:drop-shadow(0 0 25px rgba(255,47,138,.35))}
+.hero-card:after{content:"MUC-OFF • CLEAN • PROTECT • RIDE";position:absolute;bottom:20px;left:20px;right:20px;text-align:center;color:#707783;font-weight:900;letter-spacing:2px}
+section{max-width:1100px;margin:auto;padding:85px 22px}
+.title{text-align:center;margin-bottom:42px}.title h2{font-size:42px;margin:0 0 8px}.title p{color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.card{background:var(--card);border:1px solid #2a303a;border-radius:22px;padding:26px;position:relative}.card.featured{border-color:var(--pink);box-shadow:0 0 35px rgba(255,47,138,.12)}
+.card h3{font-size:25px;margin:0}.price{font-size:42px;font-weight:900;margin:15px 0}.price small{font-size:14px;color:var(--muted)}
+.card ul{padding-left:20px;color:#d5d8de}.card li{margin:9px 0}
+.tag{position:absolute;right:18px;top:18px;background:var(--pink);color:#111;padding:5px 9px;border-radius:8px;font-weight:900;font-size:12px}
+.subscription{background:linear-gradient(110deg,#171c22,#101217);border:1px solid #303743;border-radius:26px;padding:38px;display:flex;justify-content:space-between;gap:30px;align-items:center}.subscription h3{font-size:30px;margin:0}.subscription p{color:var(--muted)}
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}.step{text-align:center;padding:25px 16px;border-radius:18px;background:#11141a;border:1px solid #282e37}.num{width:42px;height:42px;margin:0 auto 12px;border-radius:50%;display:grid;place-items:center;background:var(--green);color:#111;font-weight:900}
+.features{display:grid;grid-template-columns:repeat(2,1fr);gap:18px}.feature{padding:24px;background:#11141a;border-radius:18px;border-left:4px solid var(--blue)}
+.booking{display:grid;grid-template-columns:1fr 1fr;gap:30px}.box{background:#11141a;border:1px solid #2a303a;border-radius:22px;padding:28px}
+label{display:block;font-weight:800;margin:13px 0 6px}input,select,textarea{width:100%;padding:13px;border-radius:10px;border:1px solid #39404b;background:#090b0f;color:white;font:inherit}textarea{min-height:110px}
+footer{border-top:1px solid #272c34;padding:35px 22px;text-align:center;color:var(--muted)}footer strong{color:var(--white)}
+.sponsor{margin-top:12px;font-weight:800;color:var(--pink)}
+@media(max-width:800px){.links{display:none}.hero-in,.booking{grid-template-columns:1fr}.grid{grid-template-columns:1fr}.steps{grid-template-columns:1fr 1fr}.features{grid-template-columns:1fr}.subscription{display:block}.subscription .btn{margin-top:12px}}
+@media(max-width:480px){.steps{grid-template-columns:1fr}.hero{min-height:auto}.hero-in{padding:60px 20px}section{padding:60px 18px}}
+</style>
+</head>
+<body>
+<nav><div class="navin">
+  <a class="logo" href="#home">CLEAN <span>RIDE</span></a>
+  <div class="links"><a href="#prijzen">Prijzen</a><a href="#werkwijze">Werkwijze</a><a href="#abonnement">Abonnement</a><a href="#afspraak">Afspraak</a></div>
+  <a class="btn" href="#afspraak">Boeken</a>
+</div></nav>
+
+<header class="hero" id="home"><div class="hero-in">
+  <div>
+    <span class="badge">PROFESSIONELE FIETSREINIGING</span>
+    <h1>Jouw fiets.<br><span class="pink">Weer als nieuw.</span></h1>
+    <p>Van een snelle wasbeurt tot een grondige reiniging van de aandrijving. Clean Ride geeft je fiets de verzorging die hij verdient.</p>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:25px"><a class="btn" href="#prijzen">Bekijk prijzen</a><a class="btn alt" href="#afspraak">Maak een afspraak</a></div>
+  </div>
+  <div class="hero-card"><div class="bike">🚲</div></div>
+</div></header>
+
+<section id="prijzen"><div class="title"><h2>Onze <span class="pink">prijzen</span></h2><p>Kies de reiniging die bij jouw fiets past.</p></div>
+<div class="grid">
+  <article class="card"><h3>🟢 Basic Wash</h3><div class="price">€7</div><ul><li>Frame reinigen</li><li>Wielen & banden</li><li>Afspoelen</li><li>Basis droging</li></ul><a class="btn alt" href="#afspraak">Boeken</a></article>
+  <article class="card"><span class="tag">POPULAIR</span><h3>🔵 Grondige Reiniging</h3><div class="price">€11</div><ul><li>Alles van Basic Wash</li><li>Ketting & aandrijving reinigen</li><li>Cassette & derailleur</li><li>Detailing</li><li>Grondig drogen</li></ul><a class="btn" href="#afspraak">Boeken</a></article>
+  <article class="card"><h3>🔴 Ultimate Clean</h3><div class="price">€15</div><ul><li>Alles van Grondige Reiniging</li><li>Extra detailing</li><li>Bike Protect</li><li>Ketting smeren</li><li>Silicone Shine waar geschikt</li><li>Volledige eindcontrole</li></ul><a class="btn alt" href="#afspraak">Boeken</a></article>
+</div>
+<p style="text-align:center;margin-top:22px;color:var(--muted)">🟤 Extreem modderige fiets: <strong style="color:white">+€2</strong></p>
+</section>
+
+<section id="abonnement"><div class="subscription">
+<div><h3>⭐ 1 jaar abonnement — €100</h3><p>Onbeperkt <strong style="color:white">Grondige Reiniging</strong> gedurende 1 jaar. Ideaal voor fanatieke fietsers.</p></div>
+<a class="btn" href="#afspraak">Abonnement aanvragen</a>
+</div></section>
+
+<section id="werkwijze"><div class="title"><h2>Zo werken we</h2><p>Een vaste, zorgvuldige procedure bij elke fiets.</p></div>
+<div class="steps">
+<div class="step"><div class="num">1</div><h3>Inleveren</h3><p>We bekijken de fiets en spreken het pakket af.</p></div>
+<div class="step"><div class="num">2</div><h3>Reinigen</h3><p>We verwijderen vuil, modder en aanslag.</p></div>
+<div class="step"><div class="num">3</div><h3>Afwerken</h3><p>Grondig drogen en, afhankelijk van het pakket, beschermen en smeren.</p></div>
+<div class="step"><div class="num">4</div><h3>Ophalen</h3><p>Je krijgt je fiets schoon en klaar om te rijden terug.</p></div>
+</div></section>
+
+<section><div class="title"><h2>Waarom <span class="green">Clean Ride?</span></h2></div>
+<div class="features">
+<div class="feature"><h3>🧼 Muc-Off producten</h3><p>We werken met producten van Muc-Off voor het reinigen, beschermen en onderhouden van fietsen.</p></div>
+<div class="feature"><h3>🛑 Zorg voor je remmen</h3><p>Remschijven en remblokken worden vrijgehouden van olie en andere gladmakende producten.</p></div>
+<div class="feature"><h3>✨ Nette afwerking</h3><p>Na het wassen wordt de fiets zorgvuldig gedroogd en gecontroleerd.</p></div>
+<div class="feature"><h3>🚲 Voor elke fiets</h3><p>Racefiets, MTB, gravelbike of gewone fiets: we passen de behandeling aan de fiets aan.</p></div>
+</div></section>
+
+<section id="afspraak"><div class="title"><h2>Maak een <span class="pink">afspraak</span></h2><p>Vul het formulier in en we nemen contact met je op.</p></div>
+<div class="booking">
+<div class="box"><h3>📅 Aanvraag</h3>
+<form id="bookingForm">
+<label>Naam</label><input name="name" required placeholder="Voornaam + achternaam">
+<label>E-mail</label><input type="email" name="email" required placeholder="klant@email.be">
+<label>Telefoon</label><input name="phone" required placeholder="04xx xx xx xx">
+<label>Service</label><select name="service"><option>Basic Wash — €7</option><option>Grondige Reiniging — €11</option><option>Ultimate Clean — €15</option><option>1 jaar abonnement — €100</option></select>
+<label>Opmerking</label><textarea name="message" placeholder="Bijv. MTB, veel modder, gewenste dag..."></textarea>
+<button class="btn" style="margin-top:15px;border:0;cursor:pointer" type="submit">Aanvraag versturen</button>
+<p id="msg" style="color:var(--green);font-weight:700"></p>
+</form>
+<script>
+const f=document.getElementById('bookingForm'), m=document.getElementById('msg');
+f.addEventListener('submit',async e=>{e.preventDefault();m.textContent='Aanvraag wordt verstuurd...';const data=Object.fromEntries(new FormData(f));try{const r=await fetch('/api/request',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});const j=await r.json();if(!r.ok)throw new Error(j.error||'Er ging iets mis');m.textContent='Bedankt! Je aanvraag is verstuurd. We laten je zo snel mogelijk weten of we ze kunnen aannemen.';f.reset();}catch(err){m.textContent='De aanvraag kon niet worden verstuurd. Probeer opnieuw of mail ons rechtstreeks.';}});
+</script></div>
+<div class="box"><h3>📍 Clean Ride</h3><p>Fietsreiniging aan huis / op afspraak.</p><p><strong>E-mail</strong><br><a href="mailto:Vanhaverbeke.jules@hotmail.com" style="color:#b8ff35">Vanhaverbeke.jules@hotmail.com</a></p><p><strong>Openingsuren</strong><br>Op afspraak</p><p><strong>Betaling</strong><br>Contant of volgens de betaalmethode die je kiest.</p><p class="sponsor">Sponsored by Anne en Stefaan</p></div>
+</div></section>
+
+<footer><strong>CLEAN RIDE</strong> — professionele fietswassing & onderhoud<br><span class="sponsor">Sponsored by Anne en Stefaan</span><br><br>© 2026 Clean Ride</footer>
+</body>
+</html>
