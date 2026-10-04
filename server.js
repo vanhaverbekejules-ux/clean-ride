@@ -91,14 +91,11 @@ async function sendEmail({ to, subject, html, replyTo }) {
             email: to
           }
         ],
-        ...(replyTo
-          ? {
-              replyTo: {
-                email: replyTo
-              }
-            }
+        ...(replyTo ? {
+          replyTo: {
+            email: replyTo
           }
-          : {}),
+        } : {}),
         subject,
         htmlContent: html
       })
@@ -117,6 +114,7 @@ async function sendEmail({ to, subject, html, replyTo }) {
     ? JSON.parse(responseText)
     : {};
 }
+
 
 /* NIEUWE AANVRAAG */
 
