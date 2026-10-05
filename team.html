@@ -1,397 +1,1341 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Team Clean Ride</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <style>
-    * {
-      box-sizing: border-box;
-    }
+<title>Clean Ride — Professionele Fietswassing</title>
 
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #090a0d;
-      color: white;
-    }
+<meta name="description" content="Clean Ride — professionele fietswassing in Kruisem en omgeving. Kies Basic Wash, Grondige Reiniging, Ultimate Clean of het jaarabonnement.">
 
-    .container {
-      width: 92%;
-      max-width: 1100px;
-      margin: 40px auto;
-    }
+<style>
+:root{
+  --bg:#07090c;
+  --card:#10141a;
+  --card2:#151a21;
+  --pink:#ff2f8a;
+  --green:#b8ff35;
+  --blue:#28a9ff;
+  --white:#f5f7fa;
+  --muted:#9da5b0;
+  --border:#242a33;
+  --danger:#ff4d6d;
+}
 
-    h1 {
-      text-align: center;
-      margin-bottom: 30px;
-    }
+*{
+  box-sizing:border-box;
+  margin:0;
+  padding:0;
+}
 
-    .login,
-    .dashboard {
-      background: #12151b;
-      border-radius: 18px;
-      padding: 25px;
-      box-shadow: 0 0 20px rgba(0,0,0,.3);
-    }
+html{
+  scroll-behavior:smooth;
+}
 
-    .dashboard {
-      display: none;
-    }
+body{
+  font-family:Arial,Helvetica,sans-serif;
+  background:
+    radial-gradient(circle at 20% 10%,rgba(255,47,138,.10),transparent 30%),
+    radial-gradient(circle at 80% 20%,rgba(40,169,255,.08),transparent 30%),
+    var(--bg);
+  color:var(--white);
+  line-height:1.6;
+}
 
-    input,
-    button {
-      width: 100%;
-      padding: 14px;
-      margin-top: 10px;
-      border-radius: 10px;
-      border: none;
-      font-size: 16px;
-    }
+a{
+  color:inherit;
+  text-decoration:none;
+}
 
-    input {
-      background: #20242c;
-      color: white;
-    }
+button,
+input,
+select,
+textarea{
+  font:inherit;
+}
 
-    button {
-      background: #b8ff35;
-      color: black;
-      font-weight: bold;
-      cursor: pointer;
-    }
+/* NAV */
 
-    button:hover {
-      opacity: .85;
-    }
+.nav{
+  position:sticky;
+  top:0;
+  z-index:100;
+  backdrop-filter:blur(16px);
+  background:rgba(7,9,12,.88);
+  border-bottom:1px solid rgba(255,255,255,.06);
+}
 
-    .error {
-      color: #ff4d6d;
-      margin-top: 10px;
-    }
+.nav-inner{
+  max-width:1150px;
+  margin:auto;
+  min-height:72px;
+  padding:0 22px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:20px;
+}
 
-    .cards {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 15px;
-      margin-bottom: 30px;
-    }
+.logo{
+  font-size:22px;
+  font-weight:900;
+  letter-spacing:1px;
+}
 
-    .card {
-      background: #1b1f27;
-      padding: 20px;
-      border-radius: 15px;
-      text-align: center;
-    }
+.logo span{
+  color:var(--green);
+}
 
-    .card h2 {
-      margin: 5px 0;
-      color: #b8ff35;
-    }
+.nav-links{
+  display:flex;
+  align-items:center;
+  gap:26px;
+  color:#c9ced6;
+  font-size:14px;
+}
 
-    .section {
-      margin-top: 25px;
-    }
+.nav-links a:hover{
+  color:white;
+}
 
-    .item {
-      background: #1b1f27;
-      padding: 15px;
-      margin-top: 10px;
-      border-radius: 12px;
-    }
+.nav-book{
+  background:var(--pink);
+  color:white!important;
+  padding:11px 18px;
+  border-radius:999px;
+  font-weight:800;
+  box-shadow:0 8px 25px rgba(255,47,138,.2);
+}
 
-    .logout {
-      background: #ff2f8a;
-      color: white;
-      margin-bottom: 20px;
-    }
+.nav-book:hover{
+  transform:translateY(-1px);
+}
 
-    @media (max-width: 700px) {
-      .cards {
-        grid-template-columns: 1fr;
-      }
+/* HERO */
 
-      .container {
-        width: 94%;
-        margin: 20px auto;
-      }
+.hero{
+  max-width:1150px;
+  margin:auto;
+  min-height:650px;
+  padding:90px 22px 80px;
+  display:flex;
+  align-items:center;
+}
 
-      .login,
-      .dashboard {
-        padding: 18px;
-      }
-    }
-  </style>
+.hero-content{
+  max-width:800px;
+}
+
+.badge{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:8px 13px;
+  border:1px solid rgba(184,255,53,.25);
+  background:rgba(184,255,53,.07);
+  color:var(--green);
+  border-radius:999px;
+  font-size:13px;
+  font-weight:800;
+  margin-bottom:22px;
+}
+
+.hero h1{
+  font-size:clamp(45px,8vw,82px);
+  line-height:.95;
+  letter-spacing:-4px;
+  margin-bottom:25px;
+}
+
+.hero h1 .pink{
+  color:var(--pink);
+}
+
+.hero h1 .green{
+  color:var(--green);
+}
+
+.hero-text{
+  max-width:650px;
+  color:var(--muted);
+  font-size:18px;
+  margin-bottom:32px;
+}
+
+.hero-buttons{
+  display:flex;
+  flex-wrap:wrap;
+  gap:12px;
+}
+
+.btn{
+  display:inline-flex;
+  justify-content:center;
+  align-items:center;
+  min-height:50px;
+  padding:0 22px;
+  border-radius:13px;
+  font-weight:900;
+  border:1px solid transparent;
+  cursor:pointer;
+  transition:.2s;
+}
+
+.btn:hover{
+  transform:translateY(-2px);
+}
+
+.btn-primary{
+  background:var(--pink);
+  color:white;
+  box-shadow:0 10px 30px rgba(255,47,138,.2);
+}
+
+.btn-secondary{
+  background:var(--card);
+  border-color:var(--border);
+  color:white;
+}
+
+/* SECTIONS */
+
+section{
+  max-width:1150px;
+  margin:auto;
+  padding:80px 22px;
+}
+
+.section-title{
+  text-align:center;
+  margin-bottom:45px;
+}
+
+.section-title .small{
+  color:var(--green);
+  font-weight:900;
+  font-size:13px;
+  text-transform:uppercase;
+  letter-spacing:2px;
+  margin-bottom:10px;
+}
+
+.section-title h2{
+  font-size:clamp(32px,5vw,48px);
+  line-height:1;
+  margin-bottom:12px;
+}
+
+.section-title p{
+  color:var(--muted);
+  max-width:650px;
+  margin:auto;
+}
+
+/* PRICES */
+
+.price-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:18px;
+}
+
+.price-card{
+  position:relative;
+  background:linear-gradient(145deg,var(--card2),var(--card));
+  border:1px solid var(--border);
+  border-radius:22px;
+  padding:30px;
+  min-height:310px;
+  transition:.2s;
+}
+
+.price-card:hover{
+  transform:translateY(-5px);
+  border-color:#39414d;
+}
+
+.price-card.featured{
+  border:1px solid rgba(255,47,138,.55);
+  box-shadow:0 15px 50px rgba(255,47,138,.08);
+}
+
+.popular{
+  position:absolute;
+  right:18px;
+  top:18px;
+  background:var(--pink);
+  padding:6px 10px;
+  border-radius:999px;
+  font-size:11px;
+  font-weight:900;
+}
+
+.price-card h3{
+  font-size:22px;
+  margin-bottom:12px;
+}
+
+.price{
+  font-size:43px;
+  font-weight:900;
+  margin-bottom:8px;
+}
+
+.price small{
+  font-size:14px;
+  color:var(--muted);
+  font-weight:normal;
+}
+
+.price-card p{
+  color:var(--muted);
+  margin-bottom:22px;
+}
+
+.price-card ul{
+  list-style:none;
+  display:grid;
+  gap:10px;
+  color:#dce0e6;
+  font-size:14px;
+}
+
+.price-card li::before{
+  content:"✓";
+  color:var(--green);
+  font-weight:900;
+  margin-right:8px;
+}
+
+/* SUBSCRIPTION */
+
+.subscription{
+  background:
+    linear-gradient(135deg,rgba(184,255,53,.10),rgba(40,169,255,.05)),
+    var(--card);
+  border:1px solid rgba(184,255,53,.22);
+  border-radius:28px;
+  padding:42px;
+  display:grid;
+  grid-template-columns:1.5fr .8fr;
+  gap:30px;
+  align-items:center;
+}
+
+.subscription h2{
+  font-size:35px;
+  margin-bottom:10px;
+}
+
+.subscription p{
+  color:var(--muted);
+}
+
+.subscription-price{
+  text-align:center;
+  background:rgba(0,0,0,.18);
+  border-radius:20px;
+  padding:25px;
+}
+
+.subscription-price strong{
+  display:block;
+  color:var(--green);
+  font-size:42px;
+}
+
+/* STEPS */
+
+.steps{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:18px;
+}
+
+.step{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:20px;
+  padding:28px;
+}
+
+.step-number{
+  width:42px;
+  height:42px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:50%;
+  background:rgba(255,47,138,.12);
+  color:var(--pink);
+  font-weight:900;
+  margin-bottom:18px;
+}
+
+.step h3{
+  margin-bottom:8px;
+}
+
+.step p{
+  color:var(--muted);
+}
+
+/* FEATURES */
+
+.features{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:15px;
+}
+
+.feature{
+  padding:24px;
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:18px;
+}
+
+.feature-icon{
+  font-size:27px;
+  margin-bottom:12px;
+}
+
+.feature h3{
+  font-size:16px;
+  margin-bottom:7px;
+}
+
+.feature p{
+  color:var(--muted);
+  font-size:13px;
+}
+
+/* FORM */
+
+.booking{
+  max-width:800px;
+  margin:auto;
+}
+
+.form-box{
+  background:linear-gradient(145deg,var(--card2),var(--card));
+  border:1px solid var(--border);
+  border-radius:25px;
+  padding:32px;
+}
+
+.form-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:16px;
+}
+
+.field{
+  display:flex;
+  flex-direction:column;
+  gap:7px;
+}
+
+.field.full{
+  grid-column:1 / -1;
+}
+
+label{
+  font-size:13px;
+  font-weight:800;
+  color:#d9dde3;
+}
+
+input,
+select,
+textarea{
+  width:100%;
+  border:1px solid var(--border);
+  background:#090c10;
+  color:white;
+  border-radius:12px;
+  padding:13px 14px;
+  outline:none;
+}
+
+input:focus,
+select:focus,
+textarea:focus{
+  border-color:var(--blue);
+  box-shadow:0 0 0 3px rgba(40,169,255,.08);
+}
+
+textarea{
+  min-height:120px;
+  resize:vertical;
+}
+
+.form-submit{
+  width:100%;
+  margin-top:18px;
+  border:0;
+}
+
+.form-note{
+  text-align:center;
+  color:#777f89;
+  font-size:12px;
+  margin-top:12px;
+}
+
+/* SUCCESS */
+
+.success{
+  display:none;
+  text-align:center;
+  padding:45px 20px;
+}
+
+.success .check{
+  width:70px;
+  height:70px;
+  border-radius:50%;
+  background:rgba(184,255,53,.12);
+  color:var(--green);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  font-size:35px;
+  margin:0 auto 20px;
+}
+
+.success h2{
+  margin-bottom:10px;
+}
+
+.success p{
+  color:var(--muted);
+}
+
+/* CONTACT */
+
+.contact{
+  text-align:center;
+  padding-bottom:100px;
+}
+
+.contact-box{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:22px;
+  padding:35px;
+}
+
+.contact-box p{
+  color:var(--muted);
+  margin:8px 0 20px;
+}
+
+.email{
+  color:var(--blue);
+  font-weight:900;
+  font-size:18px;
+}
+
+/* FOOTER */
+
+footer{
+  border-top:1px solid rgba(255,255,255,.06);
+  text-align:center;
+  padding:35px 20px 45px;
+  color:#777f89;
+  font-size:13px;
+}
+
+footer strong{
+  color:white;
+  letter-spacing:1px;
+}
+
+.sponsor{
+  color:#9da5b0;
+}
+
+.team-link{
+  display:inline-block;
+  margin-top:18px;
+  color:#707780;
+  font-size:12px;
+  padding:7px 12px;
+  border:1px solid #242a33;
+  border-radius:999px;
+  transition:.2s;
+}
+
+.team-link:hover{
+  color:white;
+  border-color:#444c57;
+}
+
+/* MOBILE */
+
+@media(max-width:850px){
+
+  .nav-links{
+    gap:10px;
+  }
+
+  .nav-links a:not(.nav-book){
+    display:none;
+  }
+
+  .hero{
+    min-height:auto;
+    padding-top:70px;
+    padding-bottom:65px;
+  }
+
+  .price-grid,
+  .steps{
+    grid-template-columns:1fr;
+  }
+
+  .features{
+    grid-template-columns:1fr 1fr;
+  }
+
+  .subscription{
+    grid-template-columns:1fr;
+  }
+
+  .subscription-price{
+    text-align:center;
+  }
+}
+
+@media(max-width:600px){
+
+  .nav-inner{
+    min-height:62px;
+    padding:0 15px;
+  }
+
+  .logo{
+    font-size:19px;
+  }
+
+  .nav-book{
+    padding:9px 14px;
+    font-size:13px;
+  }
+
+  .hero{
+    padding:55px 17px 60px;
+  }
+
+  .hero h1{
+    font-size:50px;
+    letter-spacing:-2.5px;
+  }
+
+  .hero-text{
+    font-size:16px;
+  }
+
+  .hero-buttons{
+    display:grid;
+    grid-template-columns:1fr;
+  }
+
+  .btn{
+    width:100%;
+  }
+
+  section{
+    padding:60px 17px;
+  }
+
+  .section-title{
+    margin-bottom:30px;
+  }
+
+  .section-title h2{
+    font-size:34px;
+  }
+
+  .price-card{
+    min-height:auto;
+    padding:25px;
+  }
+
+  .subscription{
+    padding:25px;
+    border-radius:22px;
+  }
+
+  .subscription h2{
+    font-size:29px;
+  }
+
+  .features{
+    grid-template-columns:1fr;
+  }
+
+  .form-box{
+    padding:20px;
+    border-radius:20px;
+  }
+
+  .form-grid{
+    grid-template-columns:1fr;
+    gap:14px;
+  }
+
+  .field.full{
+    grid-column:auto;
+  }
+
+  input,
+  select,
+  textarea{
+    font-size:16px;
+  }
+
+  .contact-box{
+    padding:25px 18px;
+  }
+}
+
+@media(max-width:380px){
+
+  .hero h1{
+    font-size:43px;
+  }
+
+  .price{
+    font-size:37px;
+  }
+}
+</style>
 </head>
 
 <body>
 
-<div class="container">
+<!-- NAVIGATION -->
 
-  <h1>🔒 Team Clean Ride</h1>
+<nav class="nav">
+  <div class="nav-inner">
 
-  <!-- LOGIN -->
-  <div class="login" id="loginBox">
-    <h2>Team login</h2>
-    <p>Voer het teamwachtwoord in.</p>
+    <a href="#" class="logo">
+      CLEAN <span>RIDE</span>
+    </a>
 
-    <input
-      type="password"
-      id="password"
-      placeholder="Wachtwoord"
+    <div class="nav-links">
+      <a href="#prijzen">Prijzen</a>
+      <a href="#werkwijze">Werkwijze</a>
+      <a href="#boeken" class="nav-book">Boeken</a>
+    </div>
+
+  </div>
+</nav>
+
+
+<!-- HERO -->
+
+<header class="hero">
+
+  <div class="hero-content">
+
+    <div class="badge">
+      🚲 Professionele fietswassing
+    </div>
+
+    <h1>
+      Jouw fiets.<br>
+      <span class="pink">Superclean.</span><br>
+      <span class="green">Klaar om te rijden.</span>
+    </h1>
+
+    <p class="hero-text">
+      Van een snelle wasbeurt tot een volledige grondige reiniging.
+      Clean Ride maakt jouw fiets weer proper, fris en klaar voor de volgende rit.
+    </p>
+
+    <div class="hero-buttons">
+      <a href="#boeken" class="btn btn-primary">
+        🚲 Fiets laten wassen
+      </a>
+
+      <a href="#prijzen" class="btn btn-secondary">
+        Bekijk prijzen
+      </a>
+    </div>
+
+  </div>
+
+</header>
+
+
+<!-- PRIJZEN -->
+
+<section id="prijzen">
+
+  <div class="section-title">
+    <div class="small">Onze diensten</div>
+    <h2>Kies jouw Clean</h2>
+    <p>
+      Simpel, duidelijk en zonder verborgen kosten.
+    </p>
+  </div>
+
+  <div class="price-grid">
+
+    <div class="price-card">
+
+      <h3>Basic Wash</h3>
+
+      <div class="price">
+        €7
+      </div>
+
+      <p>
+        Een snelle basisreiniging voor je fiets.
+      </p>
+
+      <ul>
+        <li>Frame reinigen</li>
+        <li>Wielen reinigen</li>
+        <li>Grof vuil verwijderen</li>
+        <li>Fiets netjes afdrogen</li>
+      </ul>
+
+    </div>
+
+
+    <div class="price-card featured">
+
+      <div class="popular">
+        POPULAIR
+      </div>
+
+      <h3>Grondige Reiniging</h3>
+
+      <div class="price">
+        €11
+      </div>
+
+      <p>
+        Onze meest gekozen reiniging voor een echt propere fiets.
+      </p>
+
+      <ul>
+        <li>Volledige fietsreiniging</li>
+        <li>Frame en wielen</li>
+        <li>Aandrijving reinigen</li>
+        <li>Grondig vuil verwijderen</li>
+        <li>Netjes afdrogen</li>
+      </ul>
+
+    </div>
+
+
+    <div class="price-card">
+
+      <h3>Ultimate Clean</h3>
+
+      <div class="price">
+        €15
+      </div>
+
+      <p>
+        Voor wie zijn fiets maximaal proper wil.
+      </p>
+
+      <ul>
+        <li>Alles van Grondige Reiniging</li>
+        <li>Extra aandacht voor details</li>
+        <li>Dieptereiniging</li>
+        <li>Afwerking van de fiets</li>
+      </ul>
+
+    </div>
+
+  </div>
+
+  <div style="
+    text-align:center;
+    margin-top:22px;
+    color:#9da5b0;
+    font-size:13px;
+  ">
+    💩 Bij extreem veel modder: <strong style="color:white;">+€2</strong>
+  </div>
+
+</section>
+
+
+<!-- ABONNEMENT -->
+
+<section>
+
+  <div class="subscription">
+
+    <div>
+
+      <div style="
+        color:var(--green);
+        font-size:13px;
+        font-weight:900;
+        text-transform:uppercase;
+        letter-spacing:2px;
+        margin-bottom:8px;
+      ">
+        Voor echte veelrijders
+      </div>
+
+      <h2>Clean Ride Jaarabonnement</h2>
+
+      <p>
+        Voor €100 per jaar krijg je onbeperkt
+        <strong style="color:white;">Grondige Reiniging</strong>.
+      </p>
+
+      <p style="margin-top:12px;">
+        Ideaal als je vaak fietst, traint of wedstrijden rijdt.
+      </p>
+
+    </div>
+
+    <div class="subscription-price">
+
+      <span style="color:#9da5b0;">
+        per jaar
+      </span>
+
+      <strong>
+        €100
+      </strong>
+
+      <span style="color:#9da5b0;">
+        onbeperkt Grondige Reiniging
+      </span>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+<!-- WERKWIJZE -->
+
+<section id="werkwijze">
+
+  <div class="section-title">
+
+    <div class="small">Hoe werkt het?</div>
+
+    <h2>Van vuil naar clean</h2>
+
+    <p>
+      Je hoeft maar drie dingen te doen.
+    </p>
+
+  </div>
+
+
+  <div class="steps">
+
+    <div class="step">
+
+      <div class="step-number">
+        1
+      </div>
+
+      <h3>Vraag een reiniging aan</h3>
+
+      <p>
+        Vul het formulier in en kies de gewenste reiniging.
+      </p>
+
+    </div>
+
+
+    <div class="step">
+
+      <div class="step-number">
+        2
+      </div>
+
+      <h3>Wij bevestigen</h3>
+
+      <p>
+        We bekijken je aanvraag en sturen je zo snel mogelijk een bevestiging.
+      </p>
+
+    </div>
+
+
+    <div class="step">
+
+      <div class="step-number">
+        3
+      </div>
+
+      <h3>Clean Ride</h3>
+
+      <p>
+        Breng je fiets binnen en wij zorgen ervoor dat hij weer proper is.
+      </p>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+<!-- EXTRA -->
+
+<section>
+
+  <div class="section-title">
+
+    <div class="small">Waarom Clean Ride?</div>
+
+    <h2>Meer dan gewoon afspuiten</h2>
+
+  </div>
+
+
+  <div class="features">
+
+    <div class="feature">
+      <div class="feature-icon">🧽</div>
+      <h3>Grondig</h3>
+      <p>
+        We nemen de tijd om je fiets proper te maken.
+      </p>
+    </div>
+
+    <div class="feature">
+      <div class="feature-icon">🚴</div>
+      <h3>Voor fietsers</h3>
+      <p>
+        Gericht op racefietsen, MTB's en andere sportfietsen.
+      </p>
+    </div>
+
+    <div class="feature">
+      <div class="feature-icon">✨</div>
+      <h3>Netjes afgewerkt</h3>
+      <p>
+        Geen half werk. We leveren je fiets proper af.
+      </p>
+    </div>
+
+    <div class="feature">
+      <div class="feature-icon">💚</div>
+      <h3>Lokale service</h3>
+      <p>
+        Een kleine lokale onderneming met aandacht voor elke fiets.
+      </p>
+    </div>
+
+  </div>
+
+</section>
+
+
+<!-- BOEKEN -->
+
+<section id="boeken">
+
+  <div class="section-title">
+
+    <div class="small">Aanvraag</div>
+
+    <h2>Laat je fiets wassen</h2>
+
+    <p>
+      Vul hieronder je gegevens in. We nemen daarna contact met je op.
+    </p>
+
+  </div>
+
+
+  <div class="booking">
+
+    <div class="form-box" id="formBox">
+
+      <form id="bookingForm">
+
+        <div class="form-grid">
+
+          <div class="field">
+
+            <label for="name">
+              Naam *
+            </label>
+
+            <input
+              id="name"
+              name="name"
+              type="text"
+              placeholder="Voor- en achternaam"
+              required
+            >
+
+          </div>
+
+
+          <div class="field">
+
+            <label for="email">
+              E-mail *
+            </label>
+
+            <input
+              id="email"
+              name="email"
+              type="email"
+              placeholder="jouw@email.be"
+              required
+            >
+
+          </div>
+
+
+          <div class="field">
+
+            <label for="phone">
+              Telefoonnummer
+            </label>
+
+            <input
+              id="phone"
+              name="phone"
+              type="tel"
+              placeholder="0470 00 00 00"
+            >
+
+          </div>
+
+
+          <div class="field">
+
+            <label for="service">
+              Reiniging *
+            </label>
+
+            <select
+              id="service"
+              name="service"
+              required
+            >
+
+              <option value="">
+                Kies een reiniging
+              </option>
+
+              <option value="Basic Wash">
+                Basic Wash — €7
+              </option>
+
+              <option value="Grondige Reiniging">
+                Grondige Reiniging — €11
+              </option>
+
+              <option value="Ultimate Clean">
+                Ultimate Clean — €15
+              </option>
+
+              <option value="Jaarabonnement">
+                Jaarabonnement — €100
+              </option>
+
+            </select>
+
+          </div>
+
+
+          <div class="field full">
+
+            <label for="message">
+              Extra informatie
+            </label>
+
+            <textarea
+              id="message"
+              name="message"
+              placeholder="Bijvoorbeeld: veel modder, racefiets, MTB, aantal fietsen..."
+            ></textarea>
+
+          </div>
+
+        </div>
+
+
+        <button
+          type="submit"
+          class="btn btn-primary form-submit"
+          id="submitButton"
+        >
+          Aanvraag versturen →
+        </button>
+
+        <div class="form-note">
+          Je aanvraag is nog geen definitieve afspraak.
+        </div>
+
+      </form>
+
+
+      <!-- SUCCESS -->
+
+      <div class="success" id="successBox">
+
+        <div class="check">
+          ✓
+        </div>
+
+        <h2>Bedankt voor je aanvraag!</h2>
+
+        <p>
+          We behandelen het nu.
+          Je krijgt zo snel mogelijk bericht van
+          <strong style="color:white;">Clean Ride</strong>
+          via e-mail.
+        </p>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+<!-- CONTACT -->
+
+<section class="contact">
+
+  <div class="contact-box">
+
+    <h2>Contact</h2>
+
+    <p>
+      Heb je nog een vraag of wil je iets bespreken?
+    </p>
+
+    <a
+      href="mailto:clean-ride@hotmail.com"
+      class="email"
     >
-
-    <button onclick="login()">Inloggen</button>
-
-    <div class="error" id="error"></div>
-  </div>
-
-  <!-- DASHBOARD -->
-  <div class="dashboard" id="dashboard">
-
-    <button class="logout" onclick="logout()">Uitloggen</button>
-
-    <div class="cards">
-
-      <div class="card">
-        <div>Omzet</div>
-        <h2 id="revenue">€0</h2>
-      </div>
-
-      <div class="card">
-        <div>Kosten</div>
-        <h2 id="costs">€0</h2>
-      </div>
-
-      <div class="card">
-        <div>Nettowinst</div>
-        <h2 id="profit">€0</h2>
-      </div>
-
-      <div class="card">
-        <div>Klanten</div>
-        <h2 id="customers">0</h2>
-      </div>
-
-      <div class="card">
-        <div>Geaccepteerd</div>
-        <h2 id="accepted">0</h2>
-      </div>
-
-      <div class="card">
-        <div>Geweigerd</div>
-        <h2 id="rejected">0</h2>
-      </div>
-
-    </div>
-
-    <div class="section">
-      <h2>👥 Klanten</h2>
-      <div id="customerList"></div>
-    </div>
-
-    <div class="section">
-      <h2>📋 Aanvragen</h2>
-      <div id="requestList"></div>
-    </div>
-
-    <div class="section">
-      <h2>💸 Kosten toevoegen</h2>
-
-      <input id="supplier" placeholder="Leverancier">
-      <input id="description" placeholder="Omschrijving">
-      <input id="costAmount" type="number" step="0.01" placeholder="Bedrag (€)">
-
-      <button onclick="addCost()">Kosten toevoegen</button>
-    </div>
+      clean-ride@hotmail.com
+    </a>
 
   </div>
 
-</div>
+</section>
+
+
+<!-- FOOTER -->
+
+<footer>
+
+  <strong>CLEAN RIDE</strong>
+  — professionele fietswassing & onderhoud
+
+  <br><br>
+
+  <span class="sponsor">
+    Sponsored by Anne en Stefaan
+  </span>
+
+  <br>
+
+  © 2026 Clean Ride
+
+  <br>
+
+  <a
+    href="/team.html"
+    class="team-link"
+  >
+    🔒 Team Clean Ride
+  </a>
+
+</footer>
+
 
 <script>
 
-let teamPassword = "";
+const form = document.getElementById("bookingForm");
+const formBox = document.getElementById("formBox");
+const successBox = document.getElementById("successBox");
+const submitButton = document.getElementById("submitButton");
 
-async function login() {
 
-  const password = document.getElementById("password").value;
+form.addEventListener("submit", async function(event){
 
-  if (!password) {
-    document.getElementById("error").textContent =
-      "Vul het wachtwoord in.";
-    return;
-  }
+  event.preventDefault();
 
-  teamPassword = password;
+  submitButton.disabled = true;
+  submitButton.textContent = "Aanvraag versturen...";
 
-  try {
 
-    const response = await fetch("/api/team/stats", {
-      headers: {
-        "x-team-password": teamPassword
-      }
+  const formData = new FormData(form);
+
+  const data = {
+    name: formData.get("name"),
+    email: formData.get("email"),
+    phone: formData.get("phone"),
+    service: formData.get("service"),
+    message: formData.get("message")
+  };
+
+
+  try{
+
+    const response = await fetch("/api/request", {
+
+      method:"POST",
+
+      headers:{
+        "Content-Type":"application/json"
+      },
+
+      body:JSON.stringify(data)
+
     });
 
-    if (!response.ok) {
-      throw new Error();
+
+    const result = await response.json();
+
+
+    if(!response.ok || !result.success){
+
+      throw new Error(
+        result.message || "Er ging iets mis."
+      );
+
     }
 
-    document.getElementById("loginBox").style.display = "none";
-    document.getElementById("dashboard").style.display = "block";
 
-    loadDashboard();
-
-  } catch {
-
-    teamPassword = "";
-
-    document.getElementById("error").textContent =
-      "Verkeerd wachtwoord.";
-  }
-}
+    form.style.display = "none";
+    successBox.style.display = "block";
 
 
-async function loadDashboard() {
+  }catch(error){
 
-  const response = await fetch("/api/team/stats", {
-    headers: {
-      "x-team-password": teamPassword
-    }
-  });
+    alert(
+      "Er ging iets mis bij het versturen van je aanvraag.\n\n" +
+      "Probeer het opnieuw of mail naar clean-ride@hotmail.com."
+    );
 
-  const data = await response.json();
-
-  document.getElementById("revenue").textContent =
-    "€" + Number(data.financial.revenue).toFixed(2);
-
-  document.getElementById("costs").textContent =
-    "€" + Number(data.financial.costs).toFixed(2);
-
-  document.getElementById("profit").textContent =
-    "€" + Number(data.financial.profit).toFixed(2);
-
-  document.getElementById("customers").textContent =
-    data.customers.length;
-
-  document.getElementById("accepted").textContent =
-    data.counts.accepted;
-
-  document.getElementById("rejected").textContent =
-    data.counts.rejected;
-
-
-  const customerList =
-    document.getElementById("customerList");
-
-  customerList.innerHTML = "";
-
-  data.customers.forEach(customer => {
-
-    const div = document.createElement("div");
-
-    div.className = "item";
-
-    div.innerHTML = `
-      <strong>${customer.name}</strong><br>
-      ${customer.email}<br>
-      ${customer.cleanings} reinigingen<br>
-      Omzet: €${Number(customer.revenue).toFixed(2)}
-    `;
-
-    customerList.appendChild(div);
-
-  });
-
-
-  const requestList =
-    document.getElementById("requestList");
-
-  requestList.innerHTML = "";
-
-  data.requests.forEach(request => {
-
-    const div = document.createElement("div");
-
-    div.className = "item";
-
-    div.innerHTML = `
-      <strong>${request.name}</strong><br>
-      ${request.service}<br>
-      Status: ${request.status}<br>
-      Bedrag: €${Number(request.amount).toFixed(2)}
-    `;
-
-    requestList.appendChild(div);
-
-  });
-
-}
-
-
-async function addCost() {
-
-  const supplier =
-    document.getElementById("supplier").value;
-
-  const description =
-    document.getElementById("description").value;
-
-  const amount =
-    document.getElementById("costAmount").value;
-
-  if (!supplier || !description || !amount) {
-    alert("Vul alles in.");
-    return;
-  }
-
-  const response = await fetch("/api/team/cost", {
-
-    method: "POST",
-
-    headers: {
-      "Content-Type": "application/json",
-      "x-team-password": teamPassword
-    },
-
-    body: JSON.stringify({
-      supplier,
-      description,
-      amount
-    })
-
-  });
-
-  if (response.ok) {
-
-    alert("Kosten toegevoegd!");
-
-    document.getElementById("supplier").value = "";
-    document.getElementById("description").value = "";
-    document.getElementById("costAmount").value = "";
-
-    loadDashboard();
-
-  } else {
-
-    alert("Er ging iets mis.");
+    submitButton.disabled = false;
+    submitButton.textContent = "Aanvraag versturen →";
 
   }
 
-}
-
-
-function logout() {
-
-  teamPassword = "";
-
-  document.getElementById("dashboard").style.display = "none";
-  document.getElementById("loginBox").style.display = "block";
-
-  document.getElementById("password").value = "";
-
-}
+});
 
 </script>
 
