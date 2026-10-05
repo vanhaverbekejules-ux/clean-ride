@@ -1,2 +1,14 @@
-{"name":"clean-ride-mail-system","version":"1.0.0","private":true,"scripts":{"start":"node server.js"},"dependencies":{"dotenv":"^16.4.5","express":"^4.21.2","nodemailer":"^6.9.16"}}
-"pg": "^8.16.3"
+{
+  "name": "clean-ride-mail-system",
+  "version": "1.0.0",
+  "description": "Clean Ride website and mail system",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "pg": "^8.16.3"
+  }
+}
