@@ -1,41 +1,89 @@
-const express = require('express');
-const crypto = require('crypto');
-const path = require('path');
-const { Pool } = require('pg');
-require('dotenv').config();
+const express = require("express");
+const path = require("path");
+const crypto = require("crypto");
+const { Pool } = require("pg");
 
 const app = express();
 
-app.use(express.json());
-app.use(express.static(path.join(__dirname)));
+const PORT = process.env.PORT || 10000;
 
-const PORT = process.env.PORT || 3000;
+const BASE_URL =
+  process.env.BASE_URL ||
+  `http://localhost:${PORT}`;
 
-const OWNER_EMAIL = process.env.OWNER_EMAIL || 'clean-ride@hotmail.com';
-const MAIL_FROM = process.env.MAIL_FROM || 'clean-ride@hotmail.com';
-const BASE_URL = process.env.BASE_URL || `http://localhost:${PORT}`;
-const SECRET = process.env.ACTION_SECRET || 'CHANGE-ME';
-const BREVO_API_KEY = process.env.BREVO_API_KEY;
+const OWNER_EMAIL =
+  process.env.OWNER_EMAIL ||
+  "clean-ride@hotmail.com";
 
-// Team Clean Ride wachtwoord komt uit Render Environment Variables
-const TEAM_PASSWORD = process.env.TEAM_PASSWORD || '';
+const MAIL_FROM =
+  process.env.MAIL_FROM ||
+  OWNER_EMAIL;
 
-/* =========================
-   DATABASE
-========================= */
+const BREVO_API_KEY =
+  process.env.BREVO_API_KEY ||
+  "";
+
+const ACTION_SECRET =
+  process.env.ACTION_SECRET ||
+  "";
+
+const TEAM_PASSWORD =
+  process.env.TEAM_PASSWORD ||
+  "";
+
+
+// =====================================================
+// DATABASE
+// =====================================================
+
+if (!process.env.DATABASE_URL) {
+  console.error("❌ DATABASE_URL ontbreekt in Render.");
+}
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
+
   ssl: process.env.DATABASE_URL
     ? { rejectUnauthorized: false }
     : false
 });
 
+
+// =====================================================
+// EXPRESS
+// =====================================================
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+
+// =====================================================
+// WEBSITE BESTANDEN
+// =====================================================
+
+// Heel belangrijk:
+// Hierdoor worden index.html, team.html, CSS, afbeeldingen,
+// enz. gewoon vanuit de website-map geladen.
+
+app.use(
+  express.static(__dirname, {
+    index: "index.html"
+  })
+);
+
+
+// Zorg er expliciet voor dat / altijd index.html opent.
+
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "index.html"));
+});
+
+
+// =====================================================
+// DATABASE INITIALISEREN
+// =====================================================
+
 async function initDatabase() {
-  if (!process.env.DATABASE_URL) {
-    console.warn('WAARSCHUWING: DATABASE_URL ontbreekt.');
-    return;
-  }
 
   await pool.query(`
     CREATE TABLE IF NOT EXISTS requests (
@@ -43,793 +91,1005 @@ async function initDatabase() {
       request_token TEXT UNIQUE NOT NULL,
       name TEXT NOT NULL,
       email TEXT NOT NULL,
-      phone TEXT NOT NULL,
+      phone TEXT,
       service TEXT NOT NULL,
-      message TEXT DEFAULT '',
+      message TEXT,
       status TEXT NOT NULL DEFAULT 'pending',
       amount NUMERIC(10,2) NOT NULL DEFAULT 0,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      decided_at TIMESTAMPTZ
+      created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+      decided_at TIMESTAMP
     );
+  `);
 
+
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS costs (
       id SERIAL PRIMARY KEY,
       supplier TEXT NOT NULL,
       description TEXT NOT NULL,
       amount NUMERIC(10,2) NOT NULL,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      created_at TIMESTAMP NOT NULL DEFAULT NOW()
     );
   `);
 
-  console.log('Database klaar.');
+
+  console.log("✅ Database klaar.");
 }
 
-/* =========================
-   PRIJZEN
-========================= */
 
-function getAmount(service = '') {
-  const value = service.toLowerCase();
+// =====================================================
+// BEDRAGEN
+// =====================================================
 
-  if (value.includes('ultimate')) {
-    return 15;
+function getAmount(service) {
+
+  const text = String(service || "").toLowerCase();
+
+  let amount = 0;
+
+  if (text.includes("abonnement")) {
+    amount = 100;
+  }
+  else if (text.includes("ultimate")) {
+    amount = 15;
+  }
+  else if (text.includes("grondige")) {
+    amount = 11;
+  }
+  else if (text.includes("basic")) {
+    amount = 7;
   }
 
+  // Moddertoeslag
   if (
-    value.includes('grondige') ||
-    value.includes('grondig')
+    text.includes("modder") ||
+    text.includes("mud")
   ) {
-    return 11;
+    amount += 2;
   }
 
-  if (value.includes('basic')) {
-    return 7;
-  }
-
-  if (
-    value.includes('abonnement') ||
-    value.includes('subscription')
-  ) {
-    return 100;
-  }
-
-  return 0;
+  return amount;
 }
 
-/*
-  Als je formulier bijvoorbeeld
-  "Grondige Reiniging + €2 modder"
-  verstuurt, rekenen we automatisch €13.
-*/
-function getAmountWithMud(service = '') {
-  const base = getAmount(service);
 
-  const mud =
-    service.toLowerCase().includes('modder') ||
-    service.toLowerCase().includes('mud');
+// =====================================================
+// BREVO MAIL
+// =====================================================
 
-  return base + (mud ? 2 : 0);
-}
-
-/* =========================
-   TOKEN
-========================= */
-
-function createToken(payload) {
-  const body = Buffer.from(
-    JSON.stringify(payload)
-  ).toString('base64url');
-
-  const signature = crypto
-    .createHmac('sha256', SECRET)
-    .update(body)
-    .digest('base64url');
-
-  return `${body}.${signature}`;
-}
-
-function verifyToken(token) {
-  const [body, signature] =
-    String(token).split('.');
-
-  if (!body || !signature) {
-    throw new Error('Ongeldige link');
-  }
-
-  const expected = crypto
-    .createHmac('sha256', SECRET)
-    .update(body)
-    .digest('base64url');
-
-  if (signature.length !== expected.length) {
-    throw new Error('Ongeldige link');
-  }
-
-  if (
-    !crypto.timingSafeEqual(
-      Buffer.from(signature),
-      Buffer.from(expected)
-    )
-  ) {
-    throw new Error('Ongeldige link');
-  }
-
-  return JSON.parse(
-    Buffer.from(body, 'base64url').toString()
-  );
-}
-
-/* =========================
-   HTML ESCAPE
-========================= */
-
-function esc(value = '') {
-  return String(value).replace(
-    /[&<>"']/g,
-    char => ({
-      '&': '&amp;',
-      '<': '&lt;',
-      '>': '&gt;',
-      '"': '&quot;',
-      "'": '&#39;'
-    }[char])
-  );
-}
-
-/* =========================
-   BREVO
-========================= */
-
-async function sendEmail({
+async function sendBrevoEmail({
   to,
   subject,
-  html,
-  replyTo
+  html
 }) {
+
   if (!BREVO_API_KEY) {
-    throw new Error(
-      'BREVO_API_KEY ontbreekt'
-    );
+    throw new Error("BREVO_API_KEY ontbreekt.");
   }
 
   const response = await fetch(
-    'https://api.brevo.com/v3/smtp/email',
+    "https://api.brevo.com/v3/smtp/email",
     {
-      method: 'POST',
+      method: "POST",
+
       headers: {
-        accept: 'application/json',
-        'api-key': BREVO_API_KEY,
-        'content-type': 'application/json'
+        "accept": "application/json",
+        "api-key": BREVO_API_KEY,
+        "content-type": "application/json"
       },
+
       body: JSON.stringify({
         sender: {
-          name: 'Clean Ride',
+          name: "Clean Ride",
           email: MAIL_FROM
         },
+
         to: [
           {
             email: to
           }
         ],
-        ...(replyTo
-          ? {
-              replyTo: {
-                email: replyTo
-              }
-            }
-          : {}),
+
         subject,
+
         htmlContent: html
       })
     }
   );
 
-  const responseText =
-    await response.text();
+
+  const text = await response.text();
+
 
   if (!response.ok) {
+
+    console.error(
+      "❌ Brevo fout:",
+      response.status,
+      text
+    );
+
     throw new Error(
-      `Brevo API ${response.status}: ${responseText}`
+      `Brevo fout ${response.status}`
     );
   }
 
-  return responseText
-    ? JSON.parse(responseText)
-    : {};
+
+  console.log("✅ Mail verstuurd naar:", to);
+
+  return true;
 }
 
-/* =========================
-   NIEUWE AANVRAAG
-========================= */
 
-app.post('/api/request', async (req, res) => {
+// =====================================================
+// AANVRAAG EMAIL NAAR CLEAN RIDE
+// =====================================================
+
+async function sendOwnerRequestEmail(request) {
+
+  const acceptUrl =
+    `${BASE_URL}/api/decision?token=${encodeURIComponent(request.request_token)}&decision=accept`;
+
+  const rejectUrl =
+    `${BASE_URL}/api/decision?token=${encodeURIComponent(request.request_token)}&decision=reject`;
+
+
+  const html = `
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+</head>
+
+<body style="font-family:Arial,sans-serif;background:#f5f5f5;padding:20px">
+
+<div style="
+max-width:650px;
+margin:auto;
+background:white;
+padding:25px;
+border-radius:15px;
+">
+
+<h1 style="color:#ff2f8a">
+Nieuwe Clean Ride aanvraag
+</h1>
+
+<p>
+Er is een nieuwe aanvraag binnengekomen.
+</p>
+
+<hr>
+
+<p><strong>Naam:</strong><br>
+${escapeHtml(request.name)}</p>
+
+<p><strong>E-mail:</strong><br>
+${escapeHtml(request.email)}</p>
+
+<p><strong>Telefoon:</strong><br>
+${escapeHtml(request.phone || "-")}</p>
+
+<p><strong>Service:</strong><br>
+${escapeHtml(request.service)}</p>
+
+<p><strong>Bedrag:</strong><br>
+€${Number(request.amount).toFixed(2)}</p>
+
+<p><strong>Opmerking:</strong><br>
+${escapeHtml(request.message || "-")}</p>
+
+<hr>
+
+<p>
+<strong>Wat wil je doen?</strong>
+</p>
+
+<p>
+<a href="${acceptUrl}"
+style="
+display:inline-block;
+padding:14px 20px;
+background:#b8ff35;
+color:#111;
+text-decoration:none;
+border-radius:10px;
+font-weight:bold;
+margin-right:10px;
+">
+✅ Accepteren
+</a>
+</p>
+
+<p>
+<a href="${rejectUrl}"
+style="
+display:inline-block;
+padding:14px 20px;
+background:#ff2f8a;
+color:white;
+text-decoration:none;
+border-radius:10px;
+font-weight:bold;
+">
+❌ Weigeren
+</a>
+</p>
+
+</div>
+
+</body>
+</html>
+`;
+
+
+  await sendBrevoEmail({
+    to: OWNER_EMAIL,
+    subject: `Nieuwe Clean Ride aanvraag — ${request.name}`,
+    html
+  });
+}
+
+
+// =====================================================
+// KLANT EMAIL
+// =====================================================
+
+async function sendCustomerDecisionEmail(
+  request,
+  decision
+) {
+
+  const accepted = decision === "accept";
+
+
+  const subject = accepted
+    ? "Clean Ride — aanvraag geaccepteerd"
+    : "Clean Ride — aanvraag";
+
+
+  const html = accepted
+
+    ? `
+<!DOCTYPE html>
+<html lang="nl">
+<body style="font-family:Arial,sans-serif">
+
+<h2 style="color:#b8ff35">
+Goed nieuws!
+</h2>
+
+<p>
+Hallo ${escapeHtml(request.name)},
+</p>
+
+<p>
+Bedankt voor je aanvraag bij <strong>Clean Ride</strong>.
+</p>
+
+<p>
+We hebben je aanvraag geaccepteerd.
+</p>
+
+<p>
+<strong>Service:</strong><br>
+${escapeHtml(request.service)}
+</p>
+
+<p>
+<strong>Bedrag:</strong><br>
+€${Number(request.amount).toFixed(2)}
+</p>
+
+<p>
+We nemen indien nodig nog contact met je op voor de praktische afspraken.
+</p>
+
+<p>
+Tot binnenkort! 🚲
+</p>
+
+<p>
+<strong>Clean Ride</strong><br>
+clean-ride@hotmail.com
+</p>
+
+</body>
+</html>
+`
+
+    : `
+<!DOCTYPE html>
+<html lang="nl">
+<body style="font-family:Arial,sans-serif">
+
+<h2>
+Clean Ride
+</h2>
+
+<p>
+Hallo ${escapeHtml(request.name)},
+</p>
+
+<p>
+Bedankt voor je aanvraag bij Clean Ride.
+</p>
+
+<p>
+Helaas kunnen we deze aanvraag momenteel niet aannemen.
+</p>
+
+<p>
+We zijn waarschijnlijk te druk of kunnen het gevraagde moment niet aanbieden.
+</p>
+
+<p>
+Je bent natuurlijk altijd welkom om later opnieuw een aanvraag te sturen.
+</p>
+
+<p>
+Met vriendelijke groeten,<br>
+<strong>Clean Ride</strong>
+</p>
+
+</body>
+</html>
+`;
+
+
+  await sendBrevoEmail({
+    to: request.email,
+    subject,
+    html
+  });
+}
+
+
+// =====================================================
+// HTML VEILIG MAKEN
+// =====================================================
+
+function escapeHtml(value) {
+
+  return String(value || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+
+// =====================================================
+// NIEUWE AANVRAAG
+// =====================================================
+
+app.post("/api/request", async (req, res) => {
+
   try {
+
     const {
       name,
       email,
       phone,
       service,
-      message = ''
-    } = req.body || {};
+      message
+    } = req.body;
 
-    if (
-      !name ||
-      !email ||
-      !phone ||
-      !service
-    ) {
+
+    if (!name || !email || !service) {
+
       return res.status(400).json({
-        error:
-          'Vul alle verplichte velden in.'
+        success: false,
+        error: "Naam, e-mail en service zijn verplicht."
       });
+
     }
 
-    const payload = {
-      name,
-      email,
-      phone,
-      service,
-      message,
-      createdAt: Date.now()
-    };
 
-    const token = createToken(payload);
+    const requestToken =
+      crypto.randomBytes(32).toString("hex");
 
-    const acceptUrl =
-      `${BASE_URL}/api/decision?action=accept&token=${encodeURIComponent(token)}`;
 
-    const rejectUrl =
-      `${BASE_URL}/api/decision?action=reject&token=${encodeURIComponent(token)}`;
+    const amount =
+      getAmount(service);
 
-    /*
-      Aanvraag eerst in database zetten.
-      Bedrag wordt pas echte omzet wanneer
-      de aanvraag geaccepteerd wordt.
-    */
-    if (process.env.DATABASE_URL) {
-      await pool.query(
-        `
-        INSERT INTO requests
-        (
-          request_token,
+
+    const result = await pool.query(
+      `
+      INSERT INTO requests
+      (
+        request_token,
+        name,
+        email,
+        phone,
+        service,
+        message,
+        amount
+      )
+      VALUES ($1,$2,$3,$4,$5,$6,$7)
+      RETURNING *
+      `,
+      [
+        requestToken,
+        name,
+        email,
+        phone || "",
+        service,
+        message || "",
+        amount
+      ]
+    );
+
+
+    const request = result.rows[0];
+
+
+    // Eerst in database zetten.
+    // Daarna mail sturen.
+
+    try {
+
+      await sendOwnerRequestEmail(request);
+
+    } catch (mailError) {
+
+      console.error(
+        "⚠️ Aanvraag opgeslagen maar mail kon niet worden verstuurd:",
+        mailError.message
+      );
+
+    }
+
+
+    return res.json({
+      success: true,
+      message: "Aanvraag ontvangen."
+    });
+
+
+  } catch (error) {
+
+    console.error(
+      "❌ /api/request:",
+      error
+    );
+
+
+    return res.status(500).json({
+      success: false,
+      error: "Er ging iets mis op de server."
+    });
+
+  }
+
+});
+
+
+// =====================================================
+// ACCEPT / REJECT
+// =====================================================
+
+app.get("/api/decision", async (req, res) => {
+
+  try {
+
+    const {
+      token,
+      decision
+    } = req.query;
+
+
+    if (!token) {
+
+      return res.status(400).send(
+        decisionPage(
+          "❌ Ongeldige aanvraag",
+          "De aanvraagtoken ontbreekt."
+        )
+      );
+
+    }
+
+
+    if (
+      decision !== "accept" &&
+      decision !== "reject"
+    ) {
+
+      return res.status(400).send(
+        decisionPage(
+          "❌ Ongeldige actie",
+          "Deze actie bestaat niet."
+        )
+      );
+
+    }
+
+
+    const result = await pool.query(
+      `
+      SELECT *
+      FROM requests
+      WHERE request_token = $1
+      `,
+      [token]
+    );
+
+
+    if (result.rows.length === 0) {
+
+      return res.status(404).send(
+        decisionPage(
+          "❌ Niet gevonden",
+          "Deze aanvraag bestaat niet meer."
+        )
+      );
+
+    }
+
+
+    const request = result.rows[0];
+
+
+    // Al beslist?
+    if (
+      request.status === "accepted" ||
+      request.status === "rejected"
+    ) {
+
+      return res.send(
+        decisionPage(
+          "ℹ️ Al verwerkt",
+          `Deze aanvraag is al ${request.status === "accepted" ? "geaccepteerd" : "geweigerd"}.`
+        )
+      );
+
+    }
+
+
+    const newStatus =
+      decision === "accept"
+        ? "accepted"
+        : "rejected";
+
+
+    await pool.query(
+      `
+      UPDATE requests
+      SET
+        status = $1,
+        decided_at = NOW()
+      WHERE request_token = $2
+      `,
+      [
+        newStatus,
+        token
+      ]
+    );
+
+
+    try {
+
+      await sendCustomerDecisionEmail(
+        request,
+        decision
+      );
+
+    } catch (mailError) {
+
+      console.error(
+        "⚠️ Status aangepast maar klantmail mislukt:",
+        mailError.message
+      );
+
+    }
+
+
+    return res.send(
+
+      decisionPage(
+
+        decision === "accept"
+          ? "✅ Aanvraag geaccepteerd"
+          : "❌ Aanvraag geweigerd",
+
+        decision === "accept"
+          ? `De aanvraag van ${escapeHtml(request.name)} is geaccepteerd. De klant krijgt een e-mail.`
+          : `De aanvraag van ${escapeHtml(request.name)} is geweigerd. De klant krijgt een e-mail.`
+
+      )
+
+    );
+
+
+  } catch (error) {
+
+    console.error(
+      "❌ /api/decision:",
+      error
+    );
+
+
+    return res.status(500).send(
+      decisionPage(
+        "❌ Er ging iets mis",
+        "De actie kon niet worden uitgevoerd."
+      )
+    );
+
+  }
+
+});
+
+
+// =====================================================
+// DECISION PAGINA
+// =====================================================
+
+function decisionPage(title, message) {
+
+  return `
+<!DOCTYPE html>
+<html lang="nl">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport"
+content="width=device-width, initial-scale=1.0">
+
+<title>Clean Ride</title>
+
+<style>
+
+body{
+  margin:0;
+  padding:30px;
+  font-family:Arial,sans-serif;
+  background:#090a0d;
+  color:white;
+  text-align:center;
+}
+
+.box{
+  max-width:600px;
+  margin:80px auto;
+  background:#12151b;
+  padding:35px;
+  border-radius:20px;
+}
+
+h1{
+  color:#b8ff35;
+}
+
+p{
+  color:#a9afb9;
+  font-size:18px;
+  line-height:1.6;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="box">
+
+<h1>${title}</h1>
+
+<p>${message}</p>
+
+</div>
+
+</body>
+
+</html>
+`;
+
+}
+
+
+// =====================================================
+// TEAM AUTHENTICATIE
+// =====================================================
+
+function requireTeamPassword(req, res, next) {
+
+  if (!TEAM_PASSWORD) {
+
+    return res.status(500).json({
+      success: false,
+      error: "TEAM_PASSWORD ontbreekt in Render."
+    });
+
+  }
+
+
+  const password =
+    req.headers["x-team-password"];
+
+
+  if (!password || password !== TEAM_PASSWORD) {
+
+    return res.status(401).json({
+      success: false,
+      error: "Onjuist wachtwoord."
+    });
+
+  }
+
+
+  next();
+}
+
+
+// =====================================================
+// TEAM STATISTIEKEN
+// =====================================================
+
+app.get(
+  "/api/team/stats",
+  requireTeamPassword,
+  async (req, res) => {
+
+    try {
+
+      // Financieel
+
+      const revenueResult = await pool.query(`
+        SELECT COALESCE(
+          SUM(amount) FILTER (WHERE status = 'accepted'),
+          0
+        ) AS revenue
+        FROM requests
+      `);
+
+
+      const costsResult = await pool.query(`
+        SELECT COALESCE(
+          SUM(amount),
+          0
+        ) AS costs
+        FROM costs
+      `);
+
+
+      const countsResult = await pool.query(`
+        SELECT
+          COUNT(*) FILTER (
+            WHERE status = 'accepted'
+          ) AS accepted,
+
+          COUNT(*) FILTER (
+            WHERE status = 'rejected'
+          ) AS rejected,
+
+          COUNT(*) AS total
+
+        FROM requests
+      `);
+
+
+      const customersResult = await pool.query(`
+        SELECT
+
+          name,
+
+          email,
+
+          COUNT(*) FILTER (
+            WHERE status = 'accepted'
+          ) AS cleanings,
+
+          COALESCE(
+            SUM(amount) FILTER (
+              WHERE status = 'accepted'
+            ),
+            0
+          ) AS revenue,
+
+          MAX(created_at) FILTER (
+            WHERE status = 'accepted'
+          ) AS last_visit
+
+        FROM requests
+
+        GROUP BY name, email
+
+        ORDER BY last_visit DESC NULLS LAST
+      `);
+
+
+      const requestsResult = await pool.query(`
+        SELECT
+          id,
           name,
           email,
           phone,
           service,
           message,
           status,
-          amount
-        )
-        VALUES ($1,$2,$3,$4,$5,$6,'pending',$7)
-        ON CONFLICT (request_token)
-        DO NOTHING
-        `,
-        [
-          token,
-          name,
-          email,
-          phone,
-          service,
-          message,
-          getAmountWithMud(service)
-        ]
-      );
-    }
-
-    await sendEmail({
-      to: OWNER_EMAIL,
-      replyTo: email,
-      subject:
-        `Nieuwe Clean Ride aanvraag — ${name}`,
-      html: `
-        <h2>Nieuwe Clean Ride aanvraag 🚲</h2>
-
-        <p>
-          <b>Naam:</b> ${esc(name)}<br>
-          <b>E-mail:</b> ${esc(email)}<br>
-          <b>Telefoon:</b> ${esc(phone)}<br>
-          <b>Service:</b> ${esc(service)}<br>
-          <b>Opmerking:</b> ${
-            esc(message) || '—'
-          }
-        </p>
-
-        <p>
-          <a
-            href="${acceptUrl}"
-            style="
-              display:inline-block;
-              padding:12px 18px;
-              background:#7cff00;
-              color:#000;
-              text-decoration:none;
-              font-weight:bold;
-              border-radius:8px;
-            "
-          >
-            AANVRAAG ACCEPTEREN
-          </a>
-        </p>
-
-        <p>
-          <a
-            href="${rejectUrl}"
-            style="
-              display:inline-block;
-              padding:12px 18px;
-              background:#ff3b7a;
-              color:#fff;
-              text-decoration:none;
-              font-weight:bold;
-              border-radius:8px;
-            "
-          >
-            AANVRAAG WEIGEREN
-          </a>
-        </p>
-      `
-    });
-
-    res.json({
-      ok: true
-    });
-
-  } catch (error) {
-    console.error(error);
-
-    res.status(500).json({
-      error:
-        'Mail kon niet worden verstuurd.'
-    });
-  }
-});
-
-/* =========================
-   ACCEPTEREN / WEIGEREN
-========================= */
-
-app.get('/api/decision', async (req, res) => {
-  try {
-    const data =
-      verifyToken(req.query.token);
-
-    const accepted =
-      req.query.action === 'accept';
-
-    if (
-      !accepted &&
-      req.query.action !== 'reject'
-    ) {
-      return res.status(400).send(
-        'Ongeldige keuze.'
-      );
-    }
-
-    const amount =
-      getAmountWithMud(data.service);
-
-    /*
-      DATABASE:
-      Alleen de eerste beslissing telt.
-
-      Hierdoor kan iemand niet per ongeluk
-      twee keer op "Accepteren" drukken en
-      de omzet verdubbelen.
-    */
-    let previousStatus = null;
-
-    if (process.env.DATABASE_URL) {
-      const result = await pool.query(
-        `
-        SELECT status
-        FROM requests
-        WHERE request_token = $1
-        `,
-        [req.query.token]
-      );
-
-      if (result.rows.length > 0) {
-        previousStatus =
-          result.rows[0].status;
-      }
-
-      if (
-        previousStatus === 'accepted' ||
-        previousStatus === 'rejected'
-      ) {
-        return res.send(`
-          <!DOCTYPE html>
-          <html>
-          <head>
-            <meta name="viewport"
-              content="width=device-width, initial-scale=1">
-            <title>Clean Ride</title>
-          </head>
-
-          <body style="
-            font-family:Arial;
-            padding:40px;
-            text-align:center;
-          ">
-
-            <h1>Clean Ride 🚲</h1>
-
-            <h2>
-              Deze aanvraag is al verwerkt.
-            </h2>
-
-            <p>
-              De beslissing is al eerder geregistreerd.
-            </p>
-
-          </body>
-          </html>
-        `);
-      }
-
-      await pool.query(
-        `
-        UPDATE requests
-        SET
-          status = $1,
-          amount = $2,
-          decided_at = NOW()
-        WHERE request_token = $3
-        `,
-        [
-          accepted
-            ? 'accepted'
-            : 'rejected',
           amount,
-          req.query.token
-        ]
-      );
-    }
+          created_at,
+          decided_at
 
-    let subject;
-    let html;
+        FROM requests
 
-    if (accepted) {
-      subject =
-        'Je aanvraag bij Clean Ride is bevestigd 🚲';
+        ORDER BY created_at DESC
 
-      html = `
-        <h2>
-          Bedankt om voor Clean Ride te kiezen! 🚲
-        </h2>
+        LIMIT 100
+      `);
 
-        <p>
-          Hallo ${esc(data.name)},
-        </p>
 
-        <p>
-          We hebben je aanvraag voor
-          <b>${esc(data.service)}</b>
-          ontvangen en aanvaard.
-        </p>
+      const costsListResult = await pool.query(`
+        SELECT
+          id,
+          supplier,
+          description,
+          amount,
+          created_at
 
-        <p>
-          We kijken ernaar uit om je fiets
-          weer helemaal netjes te maken.
-        </p>
+        FROM costs
 
-        <p>
-          <b>De betaling gebeurt achteraf</b>,
-          nadat de reiniging is uitgevoerd
-          en je tevreden bent met het resultaat.
-        </p>
+        ORDER BY created_at DESC
 
-        <p>
-          Tot binnenkort!<br>
-          <b>Team Clean Ride</b>
-        </p>
-      `;
+        LIMIT 100
+      `);
 
-    } else {
-      subject =
-        'Update over je aanvraag bij Clean Ride';
-
-      html = `
-        <h2>
-          Bedankt voor je aanvraag bij Clean Ride
-        </h2>
-
-        <p>
-          Hallo ${esc(data.name)},
-        </p>
-
-        <p>
-          Helaas kunnen we je aanvraag momenteel
-          niet aannemen omdat het op dit moment
-          te druk is.
-        </p>
-
-        <p>
-          We hopen je op een later moment wel
-          te kunnen helpen.
-          Bedankt voor je begrip!
-        </p>
-
-        <p>
-          Groeten,<br>
-          <b>Team Clean Ride</b>
-        </p>
-      `;
-    }
-
-    await sendEmail({
-      to: data.email,
-      subject,
-      html
-    });
-
-    res.send(`
-      <!DOCTYPE html>
-      <html>
-
-      <head>
-        <meta name="viewport"
-          content="width=device-width, initial-scale=1">
-        <title>Clean Ride</title>
-      </head>
-
-      <body style="
-        font-family:Arial;
-        padding:40px;
-        text-align:center;
-      ">
-
-        <h1>Clean Ride 🚲</h1>
-
-        <h2>
-          ${
-            accepted
-              ? 'Aanvraag geaccepteerd ✅'
-              : 'Aanvraag geweigerd ✅'
-          }
-        </h2>
-
-        <p>
-          De klant heeft automatisch
-          een e-mail ontvangen.
-        </p>
-
-        ${
-          accepted
-            ? `
-              <p>
-                <b>€${amount.toFixed(2)}</b>
-                is toegevoegd aan de omzet.
-              </p>
-            `
-            : ''
-        }
-
-      </body>
-      </html>
-    `);
-
-  } catch (error) {
-    console.error(error);
-
-    res.status(400).send(
-      'Deze actie-link is ongeldig of verlopen.'
-    );
-  }
-});
-
-/* =========================
-   TEAM CLEAN RIDE LOGIN
-========================= */
-
-function requireTeamPassword(req, res, next) {
-  const password =
-    req.headers['x-team-password'];
-
-  if (
-    !TEAM_PASSWORD ||
-    password !== TEAM_PASSWORD
-  ) {
-    return res.status(401).json({
-      error: 'Niet ingelogd.'
-    });
-  }
-
-  next();
-}
-
-/* =========================
-   TEAM STATS
-========================= */
-
-app.get(
-  '/api/team/stats',
-  requireTeamPassword,
-  async (req, res) => {
-    try {
-      if (!process.env.DATABASE_URL) {
-        return res.status(500).json({
-          error:
-            'DATABASE_URL ontbreekt.'
-        });
-      }
-
-      const totals =
-        await pool.query(`
-          SELECT
-            COUNT(*) FILTER (
-              WHERE status = 'accepted'
-            ) AS accepted_count,
-
-            COUNT(*) FILTER (
-              WHERE status = 'rejected'
-            ) AS rejected_count,
-
-            COALESCE(
-              SUM(amount) FILTER (
-                WHERE status = 'accepted'
-              ),
-              0
-            ) AS revenue
-
-          FROM requests
-        `);
-
-      const costs =
-        await pool.query(`
-          SELECT
-            COALESCE(SUM(amount), 0) AS costs
-          FROM costs
-        `);
-
-      const customers =
-        await pool.query(`
-          SELECT
-            name,
-            email,
-
-            COUNT(*) FILTER (
-              WHERE status = 'accepted'
-            ) AS cleanings,
-
-            COALESCE(
-              SUM(amount) FILTER (
-                WHERE status = 'accepted'
-              ),
-              0
-            ) AS revenue,
-
-            MAX(decided_at) FILTER (
-              WHERE status = 'accepted'
-            ) AS last_visit
-
-          FROM requests
-
-          GROUP BY name, email
-
-          HAVING COUNT(*) FILTER (
-            WHERE status = 'accepted'
-          ) > 0
-
-          ORDER BY last_visit DESC
-        `);
-
-      const requests =
-        await pool.query(`
-          SELECT
-            name,
-            email,
-            phone,
-            service,
-            amount,
-            status,
-            created_at,
-            decided_at
-          FROM requests
-          ORDER BY created_at DESC
-          LIMIT 100
-        `);
-
-      const costList =
-        await pool.query(`
-          SELECT
-            id,
-            supplier,
-            description,
-            amount,
-            created_at
-          FROM costs
-          ORDER BY created_at DESC
-          LIMIT 100
-        `);
 
       const revenue =
-        Number(totals.rows[0].revenue);
+        Number(revenueResult.rows[0].revenue || 0);
 
-      const totalCosts =
-        Number(costs.rows[0].costs);
+
+      const costs =
+        Number(costsResult.rows[0].costs || 0);
+
 
       const profit =
-        revenue - totalCosts;
+        revenue - costs;
 
-      res.json({
+
+      return res.json({
+
+        success: true,
+
         financial: {
+
           revenue,
-          costs: totalCosts,
+
+          costs,
+
           profit,
+
           margin:
             revenue > 0
               ? (profit / revenue) * 100
               : 0
+
         },
 
         counts: {
+
           accepted:
-            Number(
-              totals.rows[0].accepted_count
-            ),
+            Number(countsResult.rows[0].accepted || 0),
 
           rejected:
-            Number(
-              totals.rows[0].rejected_count
-            )
+            Number(countsResult.rows[0].rejected || 0),
+
+          total:
+            Number(countsResult.rows[0].total || 0)
+
         },
 
         customers:
-          customers.rows.map(customer => ({
+          customersResult.rows.map(customer => ({
+
             name: customer.name,
+
             email: customer.email,
+
             cleanings:
-              Number(customer.cleanings),
+              Number(customer.cleanings || 0),
+
             revenue:
-              Number(customer.revenue),
+              Number(customer.revenue || 0),
+
             lastVisit:
               customer.last_visit
+
           })),
 
         requests:
-          requests.rows.map(request => ({
-            ...request,
+          requestsResult.rows.map(request => ({
+
+            id: request.id,
+
+            name: request.name,
+
+            email: request.email,
+
+            phone: request.phone,
+
+            service: request.service,
+
+            message: request.message,
+
+            status: request.status,
+
             amount:
-              Number(request.amount)
+              Number(request.amount || 0),
+
+            createdAt:
+              request.created_at,
+
+            decidedAt:
+              request.decided_at
+
           })),
 
-        costs:
-          costList.rows.map(cost => ({
-            ...cost,
+        costsList:
+          costsListResult.rows.map(cost => ({
+
+            id: cost.id,
+
+            supplier: cost.supplier,
+
+            description: cost.description,
+
             amount:
-              Number(cost.amount)
+              Number(cost.amount || 0),
+
+            createdAt:
+              cost.created_at
+
           }))
+
       });
+
 
     } catch (error) {
-      console.error(error);
 
-      res.status(500).json({
-        error:
-          'Teamgegevens konden niet worden geladen.'
+      console.error(
+        "❌ /api/team/stats:",
+        error
+      );
+
+
+      return res.status(500).json({
+        success: false,
+        error: "Dashboard kon niet geladen worden."
       });
+
     }
+
   }
 );
 
-/* =========================
-   KOST TOEVOEGEN
-========================= */
+
+// =====================================================
+// TEAM KOST TOEVOEGEN
+// =====================================================
 
 app.post(
-  '/api/team/cost',
+  "/api/team/cost",
   requireTeamPassword,
   async (req, res) => {
+
     try {
+
       const {
         supplier,
         description,
         amount
-      } = req.body || {};
+      } = req.body;
+
 
       const numericAmount =
         Number(amount);
+
 
       if (
         !supplier ||
@@ -837,13 +1097,16 @@ app.post(
         !Number.isFinite(numericAmount) ||
         numericAmount <= 0
       ) {
+
         return res.status(400).json({
-          error:
-            'Vul leverancier, beschrijving en een geldig bedrag in.'
+          success: false,
+          error: "Vul leverancier, omschrijving en een geldig bedrag in."
         });
+
       }
 
-      await pool.query(
+
+      const result = await pool.query(
         `
         INSERT INTO costs
         (
@@ -852,51 +1115,152 @@ app.post(
           amount
         )
         VALUES ($1,$2,$3)
+        RETURNING *
         `,
         [
           supplier,
           description,
-          numericAmount.toFixed(2)
+          numericAmount
         ]
       );
 
-      res.json({
-        ok: true
+
+      return res.json({
+        success: true,
+        cost: result.rows[0]
       });
+
 
     } catch (error) {
-      console.error(error);
 
-      res.status(500).json({
-        error:
-          'Kost kon niet worden toegevoegd.'
+      console.error(
+        "❌ /api/team/cost:",
+        error
+      );
+
+
+      return res.status(500).json({
+        success: false,
+        error: "Kosten konden niet worden opgeslagen."
       });
+
     }
+
   }
 );
 
-/* =========================
-   SERVER START
-========================= */
 
-async function startServer() {
+// =====================================================
+// HEALTH CHECK
+// =====================================================
+
+app.get("/health", async (req, res) => {
+
   try {
-    await initDatabase();
 
-    app.listen(PORT, () => {
-      console.log(
-        `Clean Ride draait op ${BASE_URL}`
-      );
+    await pool.query("SELECT 1");
+
+    res.json({
+      success: true,
+      status: "ok",
+      database: "ok"
     });
 
   } catch (error) {
-    console.error(
-      'Database/server kon niet starten:',
-      error
+
+    res.status(500).json({
+      success: false,
+      status: "error",
+      database: "error"
+    });
+
+  }
+
+});
+
+
+// =====================================================
+// API 404
+// =====================================================
+
+app.use("/api", (req, res) => {
+
+  res.status(404).json({
+    success: false,
+    error: "API route niet gevonden."
+  });
+
+});
+
+
+// =====================================================
+// ALGEMENE FOUTAFHANDELING
+// =====================================================
+
+app.use((err, req, res, next) => {
+
+  console.error(
+    "❌ Server error:",
+    err
+  );
+
+
+  if (res.headersSent) {
+    return next(err);
+  }
+
+
+  res.status(500).json({
+    success: false,
+    error: "Interne serverfout."
+  });
+
+});
+
+
+// =====================================================
+// SERVER STARTEN
+// =====================================================
+
+async function startServer() {
+
+  try {
+
+    await initDatabase();
+
+
+    app.listen(
+      PORT,
+      "0.0.0.0",
+      () => {
+
+        console.log("");
+        console.log("=================================");
+        console.log("🚲 CLEAN RIDE SERVER");
+        console.log("=================================");
+        console.log(`✅ Poort: ${PORT}`);
+        console.log(`✅ Website: ${BASE_URL}`);
+        console.log("✅ Database verbonden");
+        console.log("=================================");
+        console.log("");
+
+      }
     );
 
+
+  } catch (error) {
+
+    console.error(
+      "❌ SERVER KON NIET STARTEN:"
+    );
+
+    console.error(error);
+
     process.exit(1);
+
   }
+
 }
+
 
 startServer();
