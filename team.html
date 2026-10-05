@@ -1,1 +1,399 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Team Clean Ride</title>
 
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #090a0d;
+      color: white;
+    }
+
+    .container {
+      width: 92%;
+      max-width: 1100px;
+      margin: 40px auto;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .login,
+    .dashboard {
+      background: #12151b;
+      border-radius: 18px;
+      padding: 25px;
+      box-shadow: 0 0 20px rgba(0,0,0,.3);
+    }
+
+    .dashboard {
+      display: none;
+    }
+
+    input,
+    button {
+      width: 100%;
+      padding: 14px;
+      margin-top: 10px;
+      border-radius: 10px;
+      border: none;
+      font-size: 16px;
+    }
+
+    input {
+      background: #20242c;
+      color: white;
+    }
+
+    button {
+      background: #b8ff35;
+      color: black;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:hover {
+      opacity: .85;
+    }
+
+    .error {
+      color: #ff4d6d;
+      margin-top: 10px;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 15px;
+      margin-bottom: 30px;
+    }
+
+    .card {
+      background: #1b1f27;
+      padding: 20px;
+      border-radius: 15px;
+      text-align: center;
+    }
+
+    .card h2 {
+      margin: 5px 0;
+      color: #b8ff35;
+    }
+
+    .section {
+      margin-top: 25px;
+    }
+
+    .item {
+      background: #1b1f27;
+      padding: 15px;
+      margin-top: 10px;
+      border-radius: 12px;
+    }
+
+    .logout {
+      background: #ff2f8a;
+      color: white;
+      margin-bottom: 20px;
+    }
+
+    @media (max-width: 700px) {
+      .cards {
+        grid-template-columns: 1fr;
+      }
+
+      .container {
+        width: 94%;
+        margin: 20px auto;
+      }
+
+      .login,
+      .dashboard {
+        padding: 18px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <h1>🔒 Team Clean Ride</h1>
+
+  <!-- LOGIN -->
+  <div class="login" id="loginBox">
+    <h2>Team login</h2>
+    <p>Voer het teamwachtwoord in.</p>
+
+    <input
+      type="password"
+      id="password"
+      placeholder="Wachtwoord"
+    >
+
+    <button onclick="login()">Inloggen</button>
+
+    <div class="error" id="error"></div>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div class="dashboard" id="dashboard">
+
+    <button class="logout" onclick="logout()">Uitloggen</button>
+
+    <div class="cards">
+
+      <div class="card">
+        <div>Omzet</div>
+        <h2 id="revenue">€0</h2>
+      </div>
+
+      <div class="card">
+        <div>Kosten</div>
+        <h2 id="costs">€0</h2>
+      </div>
+
+      <div class="card">
+        <div>Nettowinst</div>
+        <h2 id="profit">€0</h2>
+      </div>
+
+      <div class="card">
+        <div>Klanten</div>
+        <h2 id="customers">0</h2>
+      </div>
+
+      <div class="card">
+        <div>Geaccepteerd</div>
+        <h2 id="accepted">0</h2>
+      </div>
+
+      <div class="card">
+        <div>Geweigerd</div>
+        <h2 id="rejected">0</h2>
+      </div>
+
+    </div>
+
+    <div class="section">
+      <h2>👥 Klanten</h2>
+      <div id="customerList"></div>
+    </div>
+
+    <div class="section">
+      <h2>📋 Aanvragen</h2>
+      <div id="requestList"></div>
+    </div>
+
+    <div class="section">
+      <h2>💸 Kosten toevoegen</h2>
+
+      <input id="supplier" placeholder="Leverancier">
+      <input id="description" placeholder="Omschrijving">
+      <input id="costAmount" type="number" step="0.01" placeholder="Bedrag (€)">
+
+      <button onclick="addCost()">Kosten toevoegen</button>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+
+let teamPassword = "";
+
+async function login() {
+
+  const password = document.getElementById("password").value;
+
+  if (!password) {
+    document.getElementById("error").textContent =
+      "Vul het wachtwoord in.";
+    return;
+  }
+
+  teamPassword = password;
+
+  try {
+
+    const response = await fetch("/api/team/stats", {
+      headers: {
+        "x-team-password": teamPassword
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error();
+    }
+
+    document.getElementById("loginBox").style.display = "none";
+    document.getElementById("dashboard").style.display = "block";
+
+    loadDashboard();
+
+  } catch {
+
+    teamPassword = "";
+
+    document.getElementById("error").textContent =
+      "Verkeerd wachtwoord.";
+  }
+}
+
+
+async function loadDashboard() {
+
+  const response = await fetch("/api/team/stats", {
+    headers: {
+      "x-team-password": teamPassword
+    }
+  });
+
+  const data = await response.json();
+
+  document.getElementById("revenue").textContent =
+    "€" + Number(data.financial.revenue).toFixed(2);
+
+  document.getElementById("costs").textContent =
+    "€" + Number(data.financial.costs).toFixed(2);
+
+  document.getElementById("profit").textContent =
+    "€" + Number(data.financial.profit).toFixed(2);
+
+  document.getElementById("customers").textContent =
+    data.customers.length;
+
+  document.getElementById("accepted").textContent =
+    data.counts.accepted;
+
+  document.getElementById("rejected").textContent =
+    data.counts.rejected;
+
+
+  const customerList =
+    document.getElementById("customerList");
+
+  customerList.innerHTML = "";
+
+  data.customers.forEach(customer => {
+
+    const div = document.createElement("div");
+
+    div.className = "item";
+
+    div.innerHTML = `
+      <strong>${customer.name}</strong><br>
+      ${customer.email}<br>
+      ${customer.cleanings} reinigingen<br>
+      Omzet: €${Number(customer.revenue).toFixed(2)}
+    `;
+
+    customerList.appendChild(div);
+
+  });
+
+
+  const requestList =
+    document.getElementById("requestList");
+
+  requestList.innerHTML = "";
+
+  data.requests.forEach(request => {
+
+    const div = document.createElement("div");
+
+    div.className = "item";
+
+    div.innerHTML = `
+      <strong>${request.name}</strong><br>
+      ${request.service}<br>
+      Status: ${request.status}<br>
+      Bedrag: €${Number(request.amount).toFixed(2)}
+    `;
+
+    requestList.appendChild(div);
+
+  });
+
+}
+
+
+async function addCost() {
+
+  const supplier =
+    document.getElementById("supplier").value;
+
+  const description =
+    document.getElementById("description").value;
+
+  const amount =
+    document.getElementById("costAmount").value;
+
+  if (!supplier || !description || !amount) {
+    alert("Vul alles in.");
+    return;
+  }
+
+  const response = await fetch("/api/team/cost", {
+
+    method: "POST",
+
+    headers: {
+      "Content-Type": "application/json",
+      "x-team-password": teamPassword
+    },
+
+    body: JSON.stringify({
+      supplier,
+      description,
+      amount
+    })
+
+  });
+
+  if (response.ok) {
+
+    alert("Kosten toegevoegd!");
+
+    document.getElementById("supplier").value = "";
+    document.getElementById("description").value = "";
+    document.getElementById("costAmount").value = "";
+
+    loadDashboard();
+
+  } else {
+
+    alert("Er ging iets mis.");
+
+  }
+
+}
+
+
+function logout() {
+
+  teamPassword = "";
+
+  document.getElementById("dashboard").style.display = "none";
+  document.getElementById("loginBox").style.display = "block";
+
+  document.getElementById("password").value = "";
+
+}
+
+</script>
+
+</body>
+</html>
