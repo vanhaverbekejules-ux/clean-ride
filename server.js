@@ -1,3 +1,4 @@
+```js
 const express = require("express");
 const path = require("path");
 const crypto = require("crypto");
@@ -60,23 +61,80 @@ app.use(express.urlencoded({ extended: true }));
 // =====================================================
 // WEBSITE BESTANDEN
 // =====================================================
+//
+// BELANGRIJK:
+// /team.html wordt hier bewust EXPLICIET afgehandeld.
+//
+// Daardoor kan /team.html nooit per ongeluk
+// naar index.html gaan.
+//
+// =====================================================
 
-// Heel belangrijk:
-// Hierdoor worden index.html, team.html, CSS, afbeeldingen,
-// enz. gewoon vanuit de website-map geladen.
+// HOMEPAGE
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "index.html"));
+});
 
+
+// TEAM CLEAN RIDE
+app.get("/team.html", (req, res) => {
+  res.sendFile(
+    path.join(__dirname, "team.html"),
+    (error) => {
+
+      if (error) {
+
+        console.error(
+          "❌ team.html kon niet worden geladen:",
+          error
+        );
+
+        if (!res.headersSent) {
+          res.status(404).send(`
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Team Clean Ride</title>
+</head>
+
+<body style="
+  margin:0;
+  padding:40px;
+  background:#090a0d;
+  color:white;
+  font-family:Arial,sans-serif;
+  text-align:center;
+">
+
+<h1>Team Clean Ride</h1>
+
+<p>
+De Team Clean Ride-pagina kon niet worden gevonden.
+</p>
+
+<p style="color:#ff2f8a;">
+Controleer of <strong>team.html</strong> in je GitHub-project staat.
+</p>
+
+</body>
+</html>
+          `);
+        }
+      }
+    }
+  );
+});
+
+
+// Alle andere bestanden:
+// CSS, afbeeldingen, JavaScript, enz.
 app.use(
   express.static(__dirname, {
     index: "index.html"
   })
 );
-
-
-// Zorg er expliciet voor dat / altijd index.html opent.
-
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "index.html"));
-});
 
 
 // =====================================================
@@ -140,7 +198,6 @@ function getAmount(service) {
     amount = 7;
   }
 
-  // Moddertoeslag
   if (
     text.includes("modder") ||
     text.includes("mud")
@@ -214,7 +271,10 @@ async function sendBrevoEmail({
   }
 
 
-  console.log("✅ Mail verstuurd naar:", to);
+  console.log(
+    "✅ Mail verstuurd naar:",
+    to
+  );
 
   return true;
 }
@@ -340,7 +400,6 @@ async function sendCustomerDecisionEmail(
 ) {
 
   const accepted = decision === "accept";
-
 
   const subject = accepted
     ? "Clean Ride — aanvraag geaccepteerd"
@@ -524,9 +583,6 @@ app.post("/api/request", async (req, res) => {
     const request = result.rows[0];
 
 
-    // Eerst in database zetten.
-    // Daarna mail sturen.
-
     try {
 
       await sendOwnerRequestEmail(request);
@@ -631,7 +687,6 @@ app.get("/api/decision", async (req, res) => {
     const request = result.rows[0];
 
 
-    // Al beslist?
     if (
       request.status === "accepted" ||
       request.status === "rejected"
@@ -837,8 +892,6 @@ app.get(
 
     try {
 
-      // Financieel
-
       const revenueResult = await pool.query(`
         SELECT COALESCE(
           SUM(amount) FILTER (WHERE status = 'accepted'),
@@ -943,10 +996,8 @@ app.get(
       const revenue =
         Number(revenueResult.rows[0].revenue || 0);
 
-
       const costs =
         Number(costsResult.rows[0].costs || 0);
-
 
       const profit =
         revenue - costs;
@@ -1264,3 +1315,4 @@ async function startServer() {
 
 
 startServer();
+```
