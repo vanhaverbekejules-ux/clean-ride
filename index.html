@@ -6,7 +6,7 @@
 
 <title>Clean Ride — Professionele Fietswassing</title>
 
-<meta name="description" content="Clean Ride — professionele fietswassing in Kruisem en omgeving. Kies Basic Wash, Grondige Reiniging, Ultimate Clean of het jaarabonnement.">
+<meta name="description" content="Clean Ride — professionele fietswassing.">
 
 <style>
 :root{
@@ -19,7 +19,6 @@
   --white:#f5f7fa;
   --muted:#9da5b0;
   --border:#242a33;
-  --danger:#ff4d6d;
 }
 
 *{
@@ -47,13 +46,6 @@ a{
   text-decoration:none;
 }
 
-button,
-input,
-select,
-textarea{
-  font:inherit;
-}
-
 /* NAV */
 
 .nav{
@@ -73,7 +65,6 @@ textarea{
   display:flex;
   align-items:center;
   justify-content:space-between;
-  gap:20px;
 }
 
 .logo{
@@ -104,11 +95,6 @@ textarea{
   padding:11px 18px;
   border-radius:999px;
   font-weight:800;
-  box-shadow:0 8px 25px rgba(255,47,138,.2);
-}
-
-.nav-book:hover{
-  transform:translateY(-1px);
 }
 
 /* HERO */
@@ -128,8 +114,6 @@ textarea{
 
 .badge{
   display:inline-flex;
-  align-items:center;
-  gap:8px;
   padding:8px 13px;
   border:1px solid rgba(184,255,53,.25);
   background:rgba(184,255,53,.07);
@@ -178,23 +162,16 @@ textarea{
   font-weight:900;
   border:1px solid transparent;
   cursor:pointer;
-  transition:.2s;
-}
-
-.btn:hover{
-  transform:translateY(-2px);
 }
 
 .btn-primary{
   background:var(--pink);
   color:white;
-  box-shadow:0 10px 30px rgba(255,47,138,.2);
 }
 
 .btn-secondary{
   background:var(--card);
   border-color:var(--border);
-  color:white;
 }
 
 /* SECTIONS */
@@ -246,17 +223,10 @@ section{
   border-radius:22px;
   padding:30px;
   min-height:310px;
-  transition:.2s;
-}
-
-.price-card:hover{
-  transform:translateY(-5px);
-  border-color:#39414d;
 }
 
 .price-card.featured{
   border:1px solid rgba(255,47,138,.55);
-  box-shadow:0 15px 50px rgba(255,47,138,.08);
 }
 
 .popular{
@@ -279,12 +249,6 @@ section{
   font-size:43px;
   font-weight:900;
   margin-bottom:8px;
-}
-
-.price small{
-  font-size:14px;
-  color:var(--muted);
-  font-weight:normal;
 }
 
 .price-card p{
@@ -372,10 +336,6 @@ section{
   margin-bottom:18px;
 }
 
-.step h3{
-  margin-bottom:8px;
-}
-
 .step p{
   color:var(--muted);
 }
@@ -398,11 +358,6 @@ section{
 .feature-icon{
   font-size:27px;
   margin-bottom:12px;
-}
-
-.feature h3{
-  font-size:16px;
-  margin-bottom:7px;
 }
 
 .feature p{
@@ -443,7 +398,6 @@ section{
 label{
   font-size:13px;
   font-weight:800;
-  color:#d9dde3;
 }
 
 input,
@@ -456,13 +410,6 @@ textarea{
   border-radius:12px;
   padding:13px 14px;
   outline:none;
-}
-
-input:focus,
-select:focus,
-textarea:focus{
-  border-color:var(--blue);
-  box-shadow:0 0 0 3px rgba(40,169,255,.08);
 }
 
 textarea{
@@ -502,10 +449,6 @@ textarea{
   align-items:center;
   font-size:35px;
   margin:0 auto 20px;
-}
-
-.success h2{
-  margin-bottom:10px;
 }
 
 .success p{
@@ -556,12 +499,14 @@ footer strong{
   color:#9da5b0;
 }
 
+/* TEAM LINK */
+
 .team-link{
   display:inline-block;
   margin-top:18px;
-  color:#707780;
+  color:#777f89;
   font-size:12px;
-  padding:7px 12px;
+  padding:8px 14px;
   border:1px solid #242a33;
   border-radius:999px;
   transition:.2s;
@@ -587,7 +532,6 @@ footer strong{
   .hero{
     min-height:auto;
     padding-top:70px;
-    padding-bottom:65px;
   }
 
   .price-grid,
@@ -601,10 +545,6 @@ footer strong{
 
   .subscription{
     grid-template-columns:1fr;
-  }
-
-  .subscription-price{
-    text-align:center;
   }
 }
 
@@ -716,8 +656,6 @@ footer strong{
 
 <body>
 
-<!-- NAVIGATION -->
-
 <nav class="nav">
   <div class="nav-inner">
 
@@ -734,8 +672,6 @@ footer strong{
   </div>
 </nav>
 
-
-<!-- HERO -->
 
 <header class="hero">
 
@@ -771,16 +707,12 @@ footer strong{
 </header>
 
 
-<!-- PRIJZEN -->
-
 <section id="prijzen">
 
   <div class="section-title">
     <div class="small">Onze diensten</div>
     <h2>Kies jouw Clean</h2>
-    <p>
-      Simpel, duidelijk en zonder verborgen kosten.
-    </p>
+    <p>Simpel, duidelijk en zonder verborgen kosten.</p>
   </div>
 
   <div class="price-grid">
@@ -789,13 +721,9 @@ footer strong{
 
       <h3>Basic Wash</h3>
 
-      <div class="price">
-        €7
-      </div>
+      <div class="price">€7</div>
 
-      <p>
-        Een snelle basisreiniging voor je fiets.
-      </p>
+      <p>Een snelle basisreiniging voor je fiets.</p>
 
       <ul>
         <li>Frame reinigen</li>
@@ -809,19 +737,13 @@ footer strong{
 
     <div class="price-card featured">
 
-      <div class="popular">
-        POPULAIR
-      </div>
+      <div class="popular">POPULAIR</div>
 
       <h3>Grondige Reiniging</h3>
 
-      <div class="price">
-        €11
-      </div>
+      <div class="price">€11</div>
 
-      <p>
-        Onze meest gekozen reiniging voor een echt propere fiets.
-      </p>
+      <p>Onze meest gekozen reiniging voor een echt propere fiets.</p>
 
       <ul>
         <li>Volledige fietsreiniging</li>
@@ -838,13 +760,9 @@ footer strong{
 
       <h3>Ultimate Clean</h3>
 
-      <div class="price">
-        €15
-      </div>
+      <div class="price">€15</div>
 
-      <p>
-        Voor wie zijn fiets maximaal proper wil.
-      </p>
+      <p>Voor wie zijn fiets maximaal proper wil.</p>
 
       <ul>
         <li>Alles van Grondige Reiniging</li>
@@ -863,13 +781,12 @@ footer strong{
     color:#9da5b0;
     font-size:13px;
   ">
-    💩 Bij extreem veel modder: <strong style="color:white;">+€2</strong>
+    💩 Bij extreem veel modder:
+    <strong style="color:white;">+€2</strong>
   </div>
 
 </section>
 
-
-<!-- ABONNEMENT -->
 
 <section>
 
@@ -903,13 +820,9 @@ footer strong{
 
     <div class="subscription-price">
 
-      <span style="color:#9da5b0;">
-        per jaar
-      </span>
+      <span style="color:#9da5b0;">per jaar</span>
 
-      <strong>
-        €100
-      </strong>
+      <strong>€100</strong>
 
       <span style="color:#9da5b0;">
         onbeperkt Grondige Reiniging
@@ -922,8 +835,6 @@ footer strong{
 </section>
 
 
-<!-- WERKWIJZE -->
-
 <section id="werkwijze">
 
   <div class="section-title">
@@ -932,9 +843,7 @@ footer strong{
 
     <h2>Van vuil naar clean</h2>
 
-    <p>
-      Je hoeft maar drie dingen te doen.
-    </p>
+    <p>Je hoeft maar drie dingen te doen.</p>
 
   </div>
 
@@ -943,9 +852,7 @@ footer strong{
 
     <div class="step">
 
-      <div class="step-number">
-        1
-      </div>
+      <div class="step-number">1</div>
 
       <h3>Vraag een reiniging aan</h3>
 
@@ -958,9 +865,7 @@ footer strong{
 
     <div class="step">
 
-      <div class="step-number">
-        2
-      </div>
+      <div class="step-number">2</div>
 
       <h3>Wij bevestigen</h3>
 
@@ -973,9 +878,7 @@ footer strong{
 
     <div class="step">
 
-      <div class="step-number">
-        3
-      </div>
+      <div class="step-number">3</div>
 
       <h3>Clean Ride</h3>
 
@@ -989,8 +892,6 @@ footer strong{
 
 </section>
 
-
-<!-- EXTRA -->
 
 <section>
 
@@ -1008,41 +909,31 @@ footer strong{
     <div class="feature">
       <div class="feature-icon">🧽</div>
       <h3>Grondig</h3>
-      <p>
-        We nemen de tijd om je fiets proper te maken.
-      </p>
+      <p>We nemen de tijd om je fiets proper te maken.</p>
     </div>
 
     <div class="feature">
       <div class="feature-icon">🚴</div>
       <h3>Voor fietsers</h3>
-      <p>
-        Gericht op racefietsen, MTB's en andere sportfietsen.
-      </p>
+      <p>Gericht op racefietsen, MTB's en andere sportfietsen.</p>
     </div>
 
     <div class="feature">
       <div class="feature-icon">✨</div>
       <h3>Netjes afgewerkt</h3>
-      <p>
-        Geen half werk. We leveren je fiets proper af.
-      </p>
+      <p>Geen half werk. We leveren je fiets proper af.</p>
     </div>
 
     <div class="feature">
       <div class="feature-icon">💚</div>
       <h3>Lokale service</h3>
-      <p>
-        Een kleine lokale onderneming met aandacht voor elke fiets.
-      </p>
+      <p>Een kleine lokale onderneming met aandacht voor elke fiets.</p>
     </div>
 
   </div>
 
 </section>
 
-
-<!-- BOEKEN -->
 
 <section id="boeken">
 
@@ -1061,7 +952,7 @@ footer strong{
 
   <div class="booking">
 
-    <div class="form-box" id="formBox">
+    <div class="form-box">
 
       <form id="bookingForm">
 
@@ -1069,9 +960,7 @@ footer strong{
 
           <div class="field">
 
-            <label for="name">
-              Naam *
-            </label>
+            <label for="name">Naam *</label>
 
             <input
               id="name"
@@ -1086,9 +975,7 @@ footer strong{
 
           <div class="field">
 
-            <label for="email">
-              E-mail *
-            </label>
+            <label for="email">E-mail *</label>
 
             <input
               id="email"
@@ -1103,9 +990,7 @@ footer strong{
 
           <div class="field">
 
-            <label for="phone">
-              Telefoonnummer
-            </label>
+            <label for="phone">Telefoonnummer</label>
 
             <input
               id="phone"
@@ -1119,9 +1004,7 @@ footer strong{
 
           <div class="field">
 
-            <label for="service">
-              Reiniging *
-            </label>
+            <label for="service">Reiniging *</label>
 
             <select
               id="service"
@@ -1129,9 +1012,7 @@ footer strong{
               required
             >
 
-              <option value="">
-                Kies een reiniging
-              </option>
+              <option value="">Kies een reiniging</option>
 
               <option value="Basic Wash">
                 Basic Wash — €7
@@ -1156,9 +1037,7 @@ footer strong{
 
           <div class="field full">
 
-            <label for="message">
-              Extra informatie
-            </label>
+            <label for="message">Extra informatie</label>
 
             <textarea
               id="message"
@@ -1186,13 +1065,9 @@ footer strong{
       </form>
 
 
-      <!-- SUCCESS -->
-
       <div class="success" id="successBox">
 
-        <div class="check">
-          ✓
-        </div>
+        <div class="check">✓</div>
 
         <h2>Bedankt voor je aanvraag!</h2>
 
@@ -1211,8 +1086,6 @@ footer strong{
 
 </section>
 
-
-<!-- CONTACT -->
 
 <section class="contact">
 
@@ -1236,8 +1109,6 @@ footer strong{
 </section>
 
 
-<!-- FOOTER -->
-
 <footer>
 
   <strong>CLEAN RIDE</strong>
@@ -1255,10 +1126,8 @@ footer strong{
 
   <br>
 
-  <a
-    href="/team.html"
-    class="team-link"
-  >
+  <!-- TEAM CLEAN RIDE -->
+  <a href="/team.html" class="team-link">
     🔒 Team Clean Ride
   </a>
 
@@ -1268,10 +1137,8 @@ footer strong{
 <script>
 
 const form = document.getElementById("bookingForm");
-const formBox = document.getElementById("formBox");
 const successBox = document.getElementById("successBox");
 const submitButton = document.getElementById("submitButton");
-
 
 form.addEventListener("submit", async function(event){
 
@@ -1279,7 +1146,6 @@ form.addEventListener("submit", async function(event){
 
   submitButton.disabled = true;
   submitButton.textContent = "Aanvraag versturen...";
-
 
   const formData = new FormData(form);
 
@@ -1291,10 +1157,9 @@ form.addEventListener("submit", async function(event){
     message: formData.get("message")
   };
 
-
   try{
 
-    const response = await fetch("/api/request", {
+    const response = await fetch("/api/request",{
 
       method:"POST",
 
@@ -1306,22 +1171,16 @@ form.addEventListener("submit", async function(event){
 
     });
 
-
     const result = await response.json();
 
-
     if(!response.ok || !result.success){
-
       throw new Error(
         result.message || "Er ging iets mis."
       );
-
     }
 
-
-    form.style.display = "none";
-    successBox.style.display = "block";
-
+    form.style.display="none";
+    successBox.style.display="block";
 
   }catch(error){
 
@@ -1330,8 +1189,8 @@ form.addEventListener("submit", async function(event){
       "Probeer het opnieuw of mail naar clean-ride@hotmail.com."
     );
 
-    submitButton.disabled = false;
-    submitButton.textContent = "Aanvraag versturen →";
+    submitButton.disabled=false;
+    submitButton.textContent="Aanvraag versturen →";
 
   }
 
