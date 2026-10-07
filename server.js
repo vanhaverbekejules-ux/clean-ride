@@ -8,29 +8,17 @@ const app = express();
 
 const PORT = process.env.PORT || 10000;
 
-const BASE_URL =
-  process.env.BASE_URL || `http://localhost:${PORT}`;
+const BASE_URL = process.env.BASE_URL || "https://clean-ride.onrender.com";
 
-const OWNER_EMAIL =
-  process.env.OWNER_EMAIL || "clean-ride@hotmail.com";
-
-const MAIL_FROM =
-  process.env.MAIL_FROM || OWNER_EMAIL;
-
-const BREVO_API_KEY =
-  process.env.BREVO_API_KEY || "";
-
-const TEAM_PASSWORD =
-  process.env.TEAM_PASSWORD || "";
+const OWNER_EMAIL = process.env.OWNER_EMAIL || "clean-ride@hotmail.com";
+const MAIL_FROM = process.env.MAIL_FROM || OWNER_EMAIL;
+const BREVO_API_KEY = process.env.BREVO_API_KEY || "";
+const TEAM_PASSWORD = process.env.TEAM_PASSWORD || "";
 
 
 // =====================================================
 // DATABASE
 // =====================================================
-
-if (!process.env.DATABASE_URL) {
-  console.error("❌ DATABASE_URL ontbreekt in Render.");
-}
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -52,46 +40,70 @@ app.use(express.urlencoded({ extended: true }));
 // WEBSITE
 // =====================================================
 
-// Homepage
+// HOMEPAGE
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
 });
 
 
-// Team Clean Ride
-// Deze route staat bewust vóór express.static.
+// =====================================================
+// TEAM CLEAN RIDE
+// =====================================================
+
+// Dit is een volledig aparte pagina.
+// /team.html wordt NOOIT naar index.html doorgestuurd.
+
 app.get("/team.html", (req, res) => {
-  res.sendFile(path.join(__dirname, "team.html"), (err) => {
-    if (err) {
-      console.error("❌ team.html kon niet worden geladen:", err);
+  const teamFile = path.join(__dirname, "team.html");
+
+  res.sendFile(teamFile, (error) => {
+    if (error) {
+      console.error("❌ team.html ontbreekt:", error.message);
 
       if (!res.headersSent) {
         res.status(404).send(`
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Team Clean Ride</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Team Clean Ride</title>
+
+<style>
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #090a0d;
+  color: white;
+  font-family: Arial, sans-serif;
+  text-align: center;
+}
+
+.box {
+  max-width: 600px;
+  padding: 40px;
+}
+
+h1 {
+  color: #b8ff35;
+}
+
+p {
+  color: #aaa;
+  line-height: 1.6;
+}
+</style>
 </head>
-<body style="
-  margin:0;
-  min-height:100vh;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  background:#090a0d;
-  color:white;
-  font-family:Arial,sans-serif;
-  text-align:center;
-">
-  <div>
-    <h1 style="color:#b8ff35;">Team Clean Ride</h1>
-    <p>De Team-pagina kon niet worden gevonden.</p>
-    <p style="color:#ff2f8a;">
-      Controleer of <strong>team.html</strong> in je GitHub-project staat.
-    </p>
-  </div>
+
+<body>
+<div class="box">
+  <h1>Team Clean Ride</h1>
+  <p>De Team Clean Ride-pagina is nog niet toegevoegd.</p>
+  <p>Voeg <strong>team.html</strong> toe aan je GitHub-project.</p>
+</div>
 </body>
 </html>
         `);
@@ -101,15 +113,19 @@ app.get("/team.html", (req, res) => {
 });
 
 
-// Alle andere websitebestanden
+// =====================================================
+// ANDERE WEBSITEBESTANDEN
+// =====================================================
+
 app.use(express.static(__dirname));
 
 
 // =====================================================
-// DATABASE TABELLEN
+// DATABASE
 // =====================================================
 
 async function initDatabase() {
+
   await pool.query(`
     CREATE TABLE IF NOT EXISTS requests (
       id SERIAL PRIMARY KEY,
@@ -141,10 +157,11 @@ async function initDatabase() {
 
 
 // =====================================================
-// BEDRAG BEREKENEN
+// BEDRAG
 // =====================================================
 
 function getAmount(service) {
+
   const text = String(service || "").toLowerCase();
 
   let amount = 0;
@@ -171,10 +188,11 @@ function getAmount(service) {
 
 
 // =====================================================
-// HTML VEILIG MAKEN
+// HTML ESCAPEN
 // =====================================================
 
 function escapeHtml(value) {
+
   return String(value || "")
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
@@ -189,6 +207,7 @@ function escapeHtml(value) {
 // =====================================================
 
 async function sendBrevoEmail({ to, subject, html }) {
+
   if (!BREVO_API_KEY) {
     throw new Error("BREVO_API_KEY ontbreekt.");
   }
@@ -216,146 +235,70 @@ async function sendBrevoEmail({ to, subject, html }) {
           }
         ],
 
-        subject: subject,
+        subject,
         htmlContent: html
       })
     }
   );
 
-  const responseText = await response.text();
+  const text = await response.text();
 
   if (!response.ok) {
-    console.error(
-      "❌ Brevo fout:",
-      response.status,
-      responseText
-    );
-
-    throw new Error(
-      `Brevo fout ${response.status}`
-    );
+    console.error("❌ Brevo:", response.status, text);
+    throw new Error(`Brevo fout ${response.status}`);
   }
 
   console.log("✅ Mail verstuurd naar:", to);
-
-  return true;
 }
 
 
 // =====================================================
-// EMAIL NAAR EIGENAAR
+// EIGENAAR MAIL
 // =====================================================
 
 async function sendOwnerRequestEmail(request) {
+
   const acceptUrl =
-    `${BASE_URL}/api/decision?token=${encodeURIComponent(
-      request.request_token
-    )}&decision=accept`;
+    `${BASE_URL}/api/decision?token=${encodeURIComponent(request.request_token)}&decision=accept`;
 
   const rejectUrl =
-    `${BASE_URL}/api/decision?token=${encodeURIComponent(
-      request.request_token
-    )}&decision=reject`;
+    `${BASE_URL}/api/decision?token=${encodeURIComponent(request.request_token)}&decision=reject`;
 
   const html = `
 <!DOCTYPE html>
 <html lang="nl">
-<head>
-<meta charset="UTF-8">
-<title>Nieuwe Clean Ride aanvraag</title>
-</head>
+<body style="font-family:Arial,sans-serif;background:#f5f5f5;padding:20px;">
 
-<body style="
-  margin:0;
-  padding:20px;
-  background:#f5f5f5;
-  font-family:Arial,sans-serif;
-">
-
-<div style="
-  max-width:650px;
-  margin:auto;
-  background:white;
-  padding:25px;
-  border-radius:15px;
-">
+<div style="max-width:650px;margin:auto;background:white;padding:25px;border-radius:15px;">
 
 <h1 style="color:#ff2f8a;">
 Nieuwe Clean Ride aanvraag
 </h1>
 
-<p>
-Er is een nieuwe aanvraag binnengekomen.
-</p>
+<p><strong>Naam:</strong><br>${escapeHtml(request.name)}</p>
+
+<p><strong>E-mail:</strong><br>${escapeHtml(request.email)}</p>
+
+<p><strong>Telefoon:</strong><br>${escapeHtml(request.phone || "-")}</p>
+
+<p><strong>Service:</strong><br>${escapeHtml(request.service)}</p>
+
+<p><strong>Bedrag:</strong><br>€${Number(request.amount).toFixed(2)}</p>
+
+<p><strong>Opmerking:</strong><br>${escapeHtml(request.message || "-")}</p>
 
 <hr>
 
 <p>
-<strong>Naam:</strong><br>
-${escapeHtml(request.name)}
-</p>
-
-<p>
-<strong>E-mail:</strong><br>
-${escapeHtml(request.email)}
-</p>
-
-<p>
-<strong>Telefoon:</strong><br>
-${escapeHtml(request.phone || "-")}
-</p>
-
-<p>
-<strong>Service:</strong><br>
-${escapeHtml(request.service)}
-</p>
-
-<p>
-<strong>Bedrag:</strong><br>
-€${Number(request.amount).toFixed(2)}
-</p>
-
-<p>
-<strong>Opmerking:</strong><br>
-${escapeHtml(request.message || "-")}
-</p>
-
-<hr>
-
-<p>
-<strong>Wat wil je doen?</strong>
-</p>
-
-<p>
-<a
-  href="${acceptUrl}"
-  style="
-    display:inline-block;
-    padding:14px 20px;
-    background:#b8ff35;
-    color:#111;
-    text-decoration:none;
-    border-radius:10px;
-    font-weight:bold;
-  "
->
+<a href="${acceptUrl}"
+style="display:inline-block;padding:14px 20px;background:#b8ff35;color:#111;text-decoration:none;border-radius:10px;font-weight:bold;">
 ✅ Accepteren
 </a>
 </p>
 
 <p>
-<a
-  href="${rejectUrl}"
-  style="
-    display:inline-block;
-    padding:14px 20px;
-    background:#ff2f8a;
-    color:white;
-    text-decoration:none;
-    border-radius:10px;
-    font-weight:bold;
-  "
->
+<a href="${rejectUrl}"
+style="display:inline-block;padding:14px 20px;background:#ff2f8a;color:white;text-decoration:none;border-radius:10px;font-weight:bold;">
 ❌ Weigeren
 </a>
 </p>
@@ -375,10 +318,11 @@ ${escapeHtml(request.message || "-")}
 
 
 // =====================================================
-// EMAIL NAAR KLANT
+// KLANT MAIL
 // =====================================================
 
 async function sendCustomerDecisionEmail(request, decision) {
+
   const accepted = decision === "accept";
 
   const subject = accepted
@@ -395,9 +339,7 @@ async function sendCustomerDecisionEmail(request, decision) {
 Goed nieuws!
 </h2>
 
-<p>
-Hallo ${escapeHtml(request.name)},
-</p>
+<p>Hallo ${escapeHtml(request.name)},</p>
 
 <p>
 Bedankt voor je aanvraag bij <strong>Clean Ride</strong>.
@@ -418,7 +360,7 @@ ${escapeHtml(request.service)}
 </p>
 
 <p>
-We nemen indien nodig nog contact met je op voor de praktische afspraken.
+We nemen indien nodig nog contact met je op.
 </p>
 
 <p>
@@ -438,13 +380,9 @@ clean-ride@hotmail.com
 <html lang="nl">
 <body style="font-family:Arial,sans-serif;">
 
-<h2>
-Clean Ride
-</h2>
+<h2>Clean Ride</h2>
 
-<p>
-Hallo ${escapeHtml(request.name)},
-</p>
+<p>Hallo ${escapeHtml(request.name)},</p>
 
 <p>
 Bedankt voor je aanvraag bij Clean Ride.
@@ -459,7 +397,7 @@ We zijn waarschijnlijk te druk of kunnen het gevraagde moment niet aanbieden.
 </p>
 
 <p>
-Je bent natuurlijk altijd welkom om later opnieuw een aanvraag te sturen.
+Je bent altijd welkom om later opnieuw een aanvraag te sturen.
 </p>
 
 <p>
@@ -473,8 +411,8 @@ Met vriendelijke groeten,<br>
 
   await sendBrevoEmail({
     to: request.email,
-    subject: subject,
-    html: html
+    subject,
+    html
   });
 }
 
@@ -484,7 +422,9 @@ Met vriendelijke groeten,<br>
 // =====================================================
 
 app.post("/api/request", async (req, res) => {
+
   try {
+
     const {
       name,
       email,
@@ -538,7 +478,7 @@ app.post("/api/request", async (req, res) => {
       await sendOwnerRequestEmail(request);
     } catch (mailError) {
       console.error(
-        "⚠️ Aanvraag opgeslagen, maar eigenaar-mail mislukt:",
+        "⚠️ Aanvraag opgeslagen, eigenaar-mail mislukt:",
         mailError.message
       );
     }
@@ -549,6 +489,7 @@ app.post("/api/request", async (req, res) => {
     });
 
   } catch (error) {
+
     console.error("❌ /api/request:", error);
 
     return res.status(500).json({
@@ -564,11 +505,10 @@ app.post("/api/request", async (req, res) => {
 // =====================================================
 
 app.get("/api/decision", async (req, res) => {
+
   try {
-    const {
-      token,
-      decision
-    } = req.query;
+
+    const { token, decision } = req.query;
 
     if (!token) {
       return res.status(400).send(
@@ -635,15 +575,10 @@ app.get("/api/decision", async (req, res) => {
     await pool.query(
       `
       UPDATE requests
-      SET
-        status = $1,
-        decided_at = NOW()
+      SET status = $1, decided_at = NOW()
       WHERE request_token = $2
       `,
-      [
-        newStatus,
-        token
-      ]
+      [newStatus, token]
     );
 
     try {
@@ -653,7 +588,7 @@ app.get("/api/decision", async (req, res) => {
       );
     } catch (mailError) {
       console.error(
-        "⚠️ Status aangepast, maar klantmail mislukt:",
+        "⚠️ Klantmail mislukt:",
         mailError.message
       );
     }
@@ -665,20 +600,14 @@ app.get("/api/decision", async (req, res) => {
           : "❌ Aanvraag geweigerd",
 
         decision === "accept"
-          ? `De aanvraag van ${escapeHtml(
-              request.name
-            )} is geaccepteerd. De klant krijgt een e-mail.`
-          : `De aanvraag van ${escapeHtml(
-              request.name
-            )} is geweigerd. De klant krijgt een e-mail.`
+          ? `De aanvraag van ${escapeHtml(request.name)} is geaccepteerd. De klant krijgt een e-mail.`
+          : `De aanvraag van ${escapeHtml(request.name)} is geweigerd. De klant krijgt een e-mail.`
       )
     );
 
   } catch (error) {
-    console.error(
-      "❌ /api/decision:",
-      error
-    );
+
+    console.error("❌ /api/decision:", error);
 
     return res.status(500).send(
       decisionPage(
@@ -695,16 +624,18 @@ app.get("/api/decision", async (req, res) => {
 // =====================================================
 
 function decisionPage(title, message) {
+
   return `
 <!DOCTYPE html>
 <html lang="nl">
 
 <head>
+
 <meta charset="UTF-8">
 
 <meta
-  name="viewport"
-  content="width=device-width, initial-scale=1.0"
+name="viewport"
+content="width=device-width, initial-scale=1.0"
 >
 
 <title>Clean Ride</title>
@@ -760,10 +691,11 @@ p {
 
 
 // =====================================================
-// TEAM AUTHENTICATIE
+// TEAM WACHTWOORD
 // =====================================================
 
 function requireTeamPassword(req, res, next) {
+
   if (!TEAM_PASSWORD) {
     return res.status(500).json({
       success: false,
@@ -895,14 +827,10 @@ app.get(
       `);
 
       const revenue =
-        Number(
-          revenueResult.rows[0].revenue || 0
-        );
+        Number(revenueResult.rows[0].revenue || 0);
 
       const costs =
-        Number(
-          costsResult.rows[0].costs || 0
-        );
+        Number(costsResult.rows[0].costs || 0);
 
       const profit =
         revenue - costs;
@@ -924,82 +852,62 @@ app.get(
 
         counts: {
           accepted:
-            Number(
-              countsResult.rows[0].accepted || 0
-            ),
+            Number(countsResult.rows[0].accepted || 0),
 
           rejected:
-            Number(
-              countsResult.rows[0].rejected || 0
-            ),
+            Number(countsResult.rows[0].rejected || 0),
 
           total:
-            Number(
-              countsResult.rows[0].total || 0
-            )
+            Number(countsResult.rows[0].total || 0)
         },
 
         customers:
-          customersResult.rows.map(
-            customer => ({
-              name: customer.name,
-              email: customer.email,
+          customersResult.rows.map(customer => ({
+            name: customer.name,
+            email: customer.email,
 
-              cleanings:
-                Number(
-                  customer.cleanings || 0
-                ),
+            cleanings:
+              Number(customer.cleanings || 0),
 
-              revenue:
-                Number(
-                  customer.revenue || 0
-                ),
+            revenue:
+              Number(customer.revenue || 0),
 
-              lastVisit:
-                customer.last_visit
-            })
-          ),
+            lastVisit:
+              customer.last_visit
+          })),
 
         requests:
-          requestsResult.rows.map(
-            request => ({
-              id: request.id,
-              name: request.name,
-              email: request.email,
-              phone: request.phone,
-              service: request.service,
-              message: request.message,
-              status: request.status,
+          requestsResult.rows.map(request => ({
+            id: request.id,
+            name: request.name,
+            email: request.email,
+            phone: request.phone,
+            service: request.service,
+            message: request.message,
+            status: request.status,
 
-              amount:
-                Number(
-                  request.amount || 0
-                ),
+            amount:
+              Number(request.amount || 0),
 
-              createdAt:
-                request.created_at,
+            createdAt:
+              request.created_at,
 
-              decidedAt:
-                request.decided_at
-            })
-          ),
+            decidedAt:
+              request.decided_at
+          })),
 
         costsList:
-          costsListResult.rows.map(
-            cost => ({
-              id: cost.id,
-              supplier: cost.supplier,
-              description: cost.description,
+          costsListResult.rows.map(cost => ({
+            id: cost.id,
+            supplier: cost.supplier,
+            description: cost.description,
 
-              amount:
-                Number(
-                  cost.amount || 0
-                ),
+            amount:
+              Number(cost.amount || 0),
 
-              createdAt:
-                cost.created_at
-            })
-          )
+            createdAt:
+              cost.created_at
+          }))
       });
 
     } catch (error) {
@@ -1091,10 +999,11 @@ app.post(
 
 
 // =====================================================
-// HEALTH CHECK
+// HEALTH
 // =====================================================
 
 app.get("/health", async (req, res) => {
+
   try {
 
     await pool.query("SELECT 1");
@@ -1107,10 +1016,7 @@ app.get("/health", async (req, res) => {
 
   } catch (error) {
 
-    console.error(
-      "❌ Health check:",
-      error
-    );
+    console.error("❌ Health:", error);
 
     return res.status(500).json({
       success: false,
@@ -1126,6 +1032,7 @@ app.get("/health", async (req, res) => {
 // =====================================================
 
 app.use("/api", (req, res) => {
+
   return res.status(404).json({
     success: false,
     error: "API route niet gevonden."
@@ -1134,15 +1041,12 @@ app.use("/api", (req, res) => {
 
 
 // =====================================================
-// ALGEMENE FOUTAFHANDELING
+// FOUTAFHANDELING
 // =====================================================
 
 app.use((err, req, res, next) => {
 
-  console.error(
-    "❌ Server error:",
-    err
-  );
+  console.error("❌ Server error:", err);
 
   if (res.headersSent) {
     return next(err);
@@ -1156,7 +1060,7 @@ app.use((err, req, res, next) => {
 
 
 // =====================================================
-// SERVER STARTEN
+// START
 // =====================================================
 
 async function startServer() {
