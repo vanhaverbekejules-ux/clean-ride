@@ -7,18 +7,12 @@ const { Pool } = require("pg");
 const app = express();
 
 const PORT = process.env.PORT || 10000;
-
 const BASE_URL = process.env.BASE_URL || "https://clean-ride.onrender.com";
 
 const OWNER_EMAIL = process.env.OWNER_EMAIL || "clean-ride@hotmail.com";
-const MAIL_FROM = process.env.MAIL_FROM || OWNER_EMAIL;
+const MAIL_FROM = process.env.MAIL_FROM || "clean-ride@hotmail.com";
 const BREVO_API_KEY = process.env.BREVO_API_KEY || "";
 const TEAM_PASSWORD = process.env.TEAM_PASSWORD || "";
-
-
-// =====================================================
-// DATABASE
-// =====================================================
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -27,173 +21,87 @@ const pool = new Pool({
     : false
 });
 
-
-// =====================================================
-// EXPRESS
-// =====================================================
-
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+/* =========================
+   WEBSITE
+========================= */
 
-// =====================================================
-// WEBSITE
-// =====================================================
-
-// HOMEPAGE
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
 });
 
-
-// =====================================================
-// TEAM CLEAN RIDE
-// =====================================================
-
-// Dit is een volledig aparte pagina.
-// /team.html wordt NOOIT naar index.html doorgestuurd.
-
 app.get("/team.html", (req, res) => {
-  const teamFile = path.join(__dirname, "team.html");
-
-  res.sendFile(teamFile, (error) => {
-    if (error) {
-      console.error("❌ team.html ontbreekt:", error.message);
-
-      if (!res.headersSent) {
-        res.status(404).send(`
-<!DOCTYPE html>
-<html lang="nl">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Team Clean Ride</title>
-
-<style>
-body {
-  margin: 0;
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #090a0d;
-  color: white;
-  font-family: Arial, sans-serif;
-  text-align: center;
-}
-
-.box {
-  max-width: 600px;
-  padding: 40px;
-}
-
-h1 {
-  color: #b8ff35;
-}
-
-p {
-  color: #aaa;
-  line-height: 1.6;
-}
-</style>
-</head>
-
-<body>
-<div class="box">
-  <h1>Team Clean Ride</h1>
-  <p>De Team Clean Ride-pagina is nog niet toegevoegd.</p>
-  <p>Voeg <strong>team.html</strong> toe aan je GitHub-project.</p>
-</div>
-</body>
-</html>
-        `);
-      }
-    }
-  });
+  res.sendFile(path.join(__dirname, "team.html"));
 });
-
-
-// =====================================================
-// ANDERE WEBSITEBESTANDEN
-// =====================================================
 
 app.use(express.static(__dirname));
 
-
-// =====================================================
-// DATABASE
-// =====================================================
+/* =========================
+   DATABASE
+========================= */
 
 async function initDatabase() {
+  if (!process.env.DATABASE_URL) {
+    console.log("⚠️ DATABASE_URL ontbreekt.");
+    return;
+  }
 
   await pool.query(`
     CREATE TABLE IF NOT EXISTS requests (
       id SERIAL PRIMARY KEY,
-      request_token TEXT UNIQUE NOT NULL,
-      name TEXT NOT NULL,
-      email TEXT NOT NULL,
+      name TEXT,
+      email TEXT,
       phone TEXT,
-      service TEXT NOT NULL,
+      bike TEXT,
+      service TEXT,
+      mud BOOLEAN DEFAULT FALSE,
+      price NUMERIC,
+      date TEXT,
       message TEXT,
-      status TEXT NOT NULL DEFAULT 'pending',
-      amount NUMERIC(10,2) NOT NULL DEFAULT 0,
-      created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-      decided_at TIMESTAMP
-    );
+      status TEXT DEFAULT 'pending',
+      created_at TIMESTAMP DEFAULT NOW(),
+      decision_token TEXT UNIQUE
+    )
   `);
 
   await pool.query(`
     CREATE TABLE IF NOT EXISTS costs (
       id SERIAL PRIMARY KEY,
-      supplier TEXT NOT NULL,
-      description TEXT NOT NULL,
-      amount NUMERIC(10,2) NOT NULL,
-      created_at TIMESTAMP NOT NULL DEFAULT NOW()
-    );
+      description TEXT,
+      amount NUMERIC,
+      created_at TIMESTAMP DEFAULT NOW()
+    )
   `);
 
   console.log("✅ Database klaar.");
 }
 
+/* =========================
+   PRIJZEN
+========================= */
 
-// =====================================================
-// BEDRAG
-// =====================================================
+function getAmount(service, mud) {
+  let price = 0;
 
-function getAmount(service) {
+  if (service === "Basic Wash") price = 7;
+  if (service === "Grondige Reiniging") price = 11;
+  if (service === "Ultimate Clean") price = 15;
 
-  const text = String(service || "").toLowerCase();
-
-  let amount = 0;
-
-  if (text.includes("abonnement")) {
-    amount = 100;
-  } else if (text.includes("ultimate")) {
-    amount = 15;
-  } else if (text.includes("grondige")) {
-    amount = 11;
-  } else if (text.includes("basic")) {
-    amount = 7;
+  if (mud === true) {
+    price += 2;
   }
 
-  if (
-    text.includes("modder") ||
-    text.includes("mud")
-  ) {
-    amount += 2;
-  }
-
-  return amount;
+  return price;
 }
 
-
-// =====================================================
-// HTML ESCAPEN
-// =====================================================
+/* =========================
+   HTML ESCAPE
+========================= */
 
 function escapeHtml(value) {
-
-  return String(value || "")
+  return String(value ?? "")
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
@@ -201,905 +109,504 @@ function escapeHtml(value) {
     .replace(/'/g, "&#039;");
 }
 
-
-// =====================================================
-// BREVO
-// =====================================================
+/* =========================
+   BREVO
+========================= */
 
 async function sendBrevoEmail({ to, subject, html }) {
-
   if (!BREVO_API_KEY) {
-    throw new Error("BREVO_API_KEY ontbreekt.");
+    console.log("⚠️ BREVO_API_KEY ontbreekt.");
+    return false;
   }
 
-  const response = await fetch(
-    "https://api.brevo.com/v3/smtp/email",
-    {
-      method: "POST",
-
-      headers: {
-        accept: "application/json",
-        "api-key": BREVO_API_KEY,
-        "content-type": "application/json"
+  const response = await fetch("https://api.brevo.com/v3/smtp/email", {
+    method: "POST",
+    headers: {
+      "accept": "application/json",
+      "api-key": BREVO_API_KEY,
+      "content-type": "application/json"
+    },
+    body: JSON.stringify({
+      sender: {
+        name: "Clean Ride",
+        email: MAIL_FROM
       },
-
-      body: JSON.stringify({
-        sender: {
-          name: "Clean Ride",
-          email: MAIL_FROM
-        },
-
-        to: [
-          {
-            email: to
-          }
-        ],
-
-        subject,
-        htmlContent: html
-      })
-    }
-  );
-
-  const text = await response.text();
+      to: [
+        {
+          email: to
+        }
+      ],
+      subject,
+      htmlContent: html
+    })
+  });
 
   if (!response.ok) {
-    console.error("❌ Brevo:", response.status, text);
-    throw new Error(`Brevo fout ${response.status}`);
+    const errorText = await response.text();
+    console.error("Brevo fout:", errorText);
+    return false;
   }
 
-  console.log("✅ Mail verstuurd naar:", to);
+  return true;
 }
 
-
-// =====================================================
-// EIGENAAR MAIL
-// =====================================================
+/* =========================
+   OWNER EMAIL
+========================= */
 
 async function sendOwnerRequestEmail(request) {
-
   const acceptUrl =
-    `${BASE_URL}/api/decision?token=${encodeURIComponent(request.request_token)}&decision=accept`;
+    `${BASE_URL}/api/decision?id=${request.id}` +
+    `&action=accept&token=${request.decision_token}`;
 
   const rejectUrl =
-    `${BASE_URL}/api/decision?token=${encodeURIComponent(request.request_token)}&decision=reject`;
+    `${BASE_URL}/api/decision?id=${request.id}` +
+    `&action=reject&token=${request.decision_token}`;
 
   const html = `
-<!DOCTYPE html>
-<html lang="nl">
-<body style="font-family:Arial,sans-serif;background:#f5f5f5;padding:20px;">
+    <h2>Nieuwe Clean Ride aanvraag</h2>
 
-<div style="max-width:650px;margin:auto;background:white;padding:25px;border-radius:15px;">
+    <p><strong>Naam:</strong> ${escapeHtml(request.name)}</p>
+    <p><strong>E-mail:</strong> ${escapeHtml(request.email)}</p>
+    <p><strong>Telefoon:</strong> ${escapeHtml(request.phone)}</p>
+    <p><strong>Fiets:</strong> ${escapeHtml(request.bike)}</p>
+    <p><strong>Service:</strong> ${escapeHtml(request.service)}</p>
+    <p><strong>Moddertoeslag:</strong> ${request.mud ? "Ja" : "Nee"}</p>
+    <p><strong>Prijs:</strong> €${request.price}</p>
+    <p><strong>Gewenste datum:</strong> ${escapeHtml(request.date)}</p>
+    <p><strong>Opmerking:</strong> ${escapeHtml(request.message)}</p>
 
-<h1 style="color:#ff2f8a;">
-Nieuwe Clean Ride aanvraag
-</h1>
+    <hr>
 
-<p><strong>Naam:</strong><br>${escapeHtml(request.name)}</p>
+    <p>
+      <a href="${acceptUrl}">
+        ✅ Aanvraag accepteren
+      </a>
+    </p>
 
-<p><strong>E-mail:</strong><br>${escapeHtml(request.email)}</p>
+    <p>
+      <a href="${rejectUrl}">
+        ❌ Aanvraag weigeren
+      </a>
+    </p>
+  `;
 
-<p><strong>Telefoon:</strong><br>${escapeHtml(request.phone || "-")}</p>
-
-<p><strong>Service:</strong><br>${escapeHtml(request.service)}</p>
-
-<p><strong>Bedrag:</strong><br>€${Number(request.amount).toFixed(2)}</p>
-
-<p><strong>Opmerking:</strong><br>${escapeHtml(request.message || "-")}</p>
-
-<hr>
-
-<p>
-<a href="${acceptUrl}"
-style="display:inline-block;padding:14px 20px;background:#b8ff35;color:#111;text-decoration:none;border-radius:10px;font-weight:bold;">
-✅ Accepteren
-</a>
-</p>
-
-<p>
-<a href="${rejectUrl}"
-style="display:inline-block;padding:14px 20px;background:#ff2f8a;color:white;text-decoration:none;border-radius:10px;font-weight:bold;">
-❌ Weigeren
-</a>
-</p>
-
-</div>
-
-</body>
-</html>
-`;
-
-  await sendBrevoEmail({
+  return sendBrevoEmail({
     to: OWNER_EMAIL,
-    subject: `Nieuwe Clean Ride aanvraag — ${request.name}`,
+    subject: "Nieuwe Clean Ride aanvraag",
     html
   });
 }
 
+/* =========================
+   CUSTOMER EMAIL
+========================= */
 
-// =====================================================
-// KLANT MAIL
-// =====================================================
-
-async function sendCustomerDecisionEmail(request, decision) {
-
-  const accepted = decision === "accept";
-
+async function sendCustomerDecisionEmail(request, accepted) {
   const subject = accepted
-    ? "Clean Ride — aanvraag geaccepteerd"
-    : "Clean Ride — aanvraag";
+    ? "Clean Ride – aanvraag bevestigd"
+    : "Clean Ride – aanvraag";
 
   const html = accepted
     ? `
-<!DOCTYPE html>
-<html lang="nl">
-<body style="font-family:Arial,sans-serif;">
-
-<h2 style="color:#b8ff35;">
-Goed nieuws!
-</h2>
-
-<p>Hallo ${escapeHtml(request.name)},</p>
-
-<p>
-Bedankt voor je aanvraag bij <strong>Clean Ride</strong>.
-</p>
-
-<p>
-We hebben je aanvraag geaccepteerd.
-</p>
-
-<p>
-<strong>Service:</strong><br>
-${escapeHtml(request.service)}
-</p>
-
-<p>
-<strong>Bedrag:</strong><br>
-€${Number(request.amount).toFixed(2)}
-</p>
-
-<p>
-We nemen indien nodig nog contact met je op.
-</p>
-
-<p>
-Tot binnenkort! 🚲
-</p>
-
-<p>
-<strong>Clean Ride</strong><br>
-clean-ride@hotmail.com
-</p>
-
-</body>
-</html>
-`
+      <h2>Je aanvraag is bevestigd! 🚲</h2>
+      <p>Hallo ${escapeHtml(request.name)},</p>
+      <p>
+        Bedankt voor je aanvraag bij Clean Ride.
+        We hebben je aanvraag geaccepteerd.
+      </p>
+      <p>
+        <strong>Service:</strong> ${escapeHtml(request.service)}<br>
+        <strong>Prijs:</strong> €${request.price}<br>
+        <strong>Datum:</strong> ${escapeHtml(request.date)}
+      </p>
+      <p>
+        Betaling gebeurt achteraf.
+      </p>
+      <p>
+        Tot snel bij Clean Ride!
+      </p>
+    `
     : `
-<!DOCTYPE html>
-<html lang="nl">
-<body style="font-family:Arial,sans-serif;">
+      <h2>Clean Ride</h2>
+      <p>Hallo ${escapeHtml(request.name)},</p>
+      <p>
+        Bedankt voor je aanvraag bij Clean Ride.
+      </p>
+      <p>
+        Helaas kunnen we je aanvraag momenteel niet aannemen,
+        omdat we op dat moment te druk zijn.
+      </p>
+      <p>
+        Hopelijk kunnen we je een volgende keer wel helpen!
+      </p>
+    `;
 
-<h2>Clean Ride</h2>
-
-<p>Hallo ${escapeHtml(request.name)},</p>
-
-<p>
-Bedankt voor je aanvraag bij Clean Ride.
-</p>
-
-<p>
-Helaas kunnen we deze aanvraag momenteel niet aannemen.
-</p>
-
-<p>
-We zijn waarschijnlijk te druk of kunnen het gevraagde moment niet aanbieden.
-</p>
-
-<p>
-Je bent altijd welkom om later opnieuw een aanvraag te sturen.
-</p>
-
-<p>
-Met vriendelijke groeten,<br>
-<strong>Clean Ride</strong>
-</p>
-
-</body>
-</html>
-`;
-
-  await sendBrevoEmail({
+  return sendBrevoEmail({
     to: request.email,
     subject,
     html
   });
 }
 
-
-// =====================================================
-// NIEUWE AANVRAAG
-// =====================================================
+/* =========================
+   NIEUWE AANVRAAG
+========================= */
 
 app.post("/api/request", async (req, res) => {
-
   try {
-
     const {
       name,
       email,
       phone,
+      bike,
       service,
+      mud,
+      date,
       message
     } = req.body;
 
     if (!name || !email || !service) {
       return res.status(400).json({
         success: false,
-        error: "Naam, e-mail en service zijn verplicht."
+        message: "Vul alle verplichte velden in."
       });
     }
 
-    const requestToken =
-      crypto.randomBytes(32).toString("hex");
+    const mudBoolean =
+      mud === true ||
+      mud === "true" ||
+      mud === "on" ||
+      mud === "1";
 
-    const amount =
-      getAmount(service);
+    const price = getAmount(service, mudBoolean);
+
+    const decisionToken = crypto.randomBytes(32).toString("hex");
 
     const result = await pool.query(
       `
       INSERT INTO requests
       (
-        request_token,
         name,
         email,
         phone,
+        bike,
         service,
+        mud,
+        price,
+        date,
         message,
-        amount
+        decision_token
       )
-      VALUES ($1,$2,$3,$4,$5,$6,$7)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
       RETURNING *
       `,
       [
-        requestToken,
         name,
         email,
         phone || "",
+        bike || "",
         service,
+        mudBoolean,
+        price,
+        date || "",
         message || "",
-        amount
+        decisionToken
       ]
     );
 
     const request = result.rows[0];
 
-    try {
-      await sendOwnerRequestEmail(request);
-    } catch (mailError) {
-      console.error(
-        "⚠️ Aanvraag opgeslagen, eigenaar-mail mislukt:",
-        mailError.message
-      );
-    }
+    await sendOwnerRequestEmail(request);
 
-    return res.json({
+    res.json({
       success: true,
-      message: "Aanvraag ontvangen."
+      message: "Aanvraag succesvol verzonden."
     });
-
   } catch (error) {
+    console.error("Aanvraag fout:", error);
 
-    console.error("❌ /api/request:", error);
-
-    return res.status(500).json({
+    res.status(500).json({
       success: false,
-      error: "Er ging iets mis op de server."
+      message: "Er ging iets mis bij het verzenden."
     });
   }
 });
 
-
-// =====================================================
-// ACCEPT / REJECT
-// =====================================================
+/* =========================
+   ACCEPT / REJECT
+========================= */
 
 app.get("/api/decision", async (req, res) => {
-
   try {
+    const { id, action, token } = req.query;
 
-    const { token, decision } = req.query;
-
-    if (!token) {
-      return res.status(400).send(
-        decisionPage(
-          "❌ Ongeldige aanvraag",
-          "De aanvraagtoken ontbreekt."
-        )
-      );
+    if (!id || !action || !token) {
+      return res.status(400).send("Ongeldige aanvraag.");
     }
 
-    if (
-      decision !== "accept" &&
-      decision !== "reject"
-    ) {
-      return res.status(400).send(
-        decisionPage(
-          "❌ Ongeldige actie",
-          "Deze actie bestaat niet."
-        )
-      );
+    if (!["accept", "reject"].includes(action)) {
+      return res.status(400).send("Ongeldige actie.");
     }
 
     const result = await pool.query(
-      `
-      SELECT *
-      FROM requests
-      WHERE request_token = $1
-      `,
-      [token]
+      "SELECT * FROM requests WHERE id = $1 AND decision_token = $2",
+      [id, token]
     );
 
     if (result.rows.length === 0) {
-      return res.status(404).send(
-        decisionPage(
-          "❌ Niet gevonden",
-          "Deze aanvraag bestaat niet meer."
-        )
-      );
+      return res.status(404).send("Aanvraag niet gevonden.");
     }
 
     const request = result.rows[0];
 
-    if (
-      request.status === "accepted" ||
-      request.status === "rejected"
-    ) {
-      return res.send(
-        decisionPage(
-          "ℹ️ Al verwerkt",
-          `Deze aanvraag is al ${
-            request.status === "accepted"
-              ? "geaccepteerd"
-              : "geweigerd"
-          }.`
-        )
+    if (request.status !== "pending") {
+      return decisionPage(
+        "Deze aanvraag is al behandeld.",
+        "De aanvraag werd eerder al geaccepteerd of geweigerd."
       );
     }
 
-    const newStatus =
-      decision === "accept"
-        ? "accepted"
-        : "rejected";
+    const accepted = action === "accept";
 
     await pool.query(
       `
       UPDATE requests
-      SET status = $1, decided_at = NOW()
-      WHERE request_token = $2
+      SET status = $1
+      WHERE id = $2
       `,
-      [newStatus, token]
+      [accepted ? "accepted" : "rejected", id]
     );
 
-    try {
-      await sendCustomerDecisionEmail(
-        request,
-        decision
-      );
-    } catch (mailError) {
-      console.error(
-        "⚠️ Klantmail mislukt:",
-        mailError.message
-      );
-    }
+    await sendCustomerDecisionEmail(request, accepted);
 
-    return res.send(
-      decisionPage(
-        decision === "accept"
-          ? "✅ Aanvraag geaccepteerd"
-          : "❌ Aanvraag geweigerd",
-
-        decision === "accept"
-          ? `De aanvraag van ${escapeHtml(request.name)} is geaccepteerd. De klant krijgt een e-mail.`
-          : `De aanvraag van ${escapeHtml(request.name)} is geweigerd. De klant krijgt een e-mail.`
-      )
+    return decisionPage(
+      accepted
+        ? "Aanvraag geaccepteerd ✅"
+        : "Aanvraag geweigerd",
+      accepted
+        ? "De klant heeft een bevestigingsmail ontvangen."
+        : "De klant heeft een vriendelijke afwijzingsmail ontvangen."
     );
-
   } catch (error) {
+    console.error("Decision fout:", error);
 
-    console.error("❌ /api/decision:", error);
-
-    return res.status(500).send(
-      decisionPage(
-        "❌ Er ging iets mis",
-        "De actie kon niet worden uitgevoerd."
-      )
-    );
+    res.status(500).send("Er ging iets mis.");
   }
 });
 
-
-// =====================================================
-// DECISION PAGINA
-// =====================================================
-
-function decisionPage(title, message) {
-
+function decisionPage(title, text) {
   return `
-<!DOCTYPE html>
-<html lang="nl">
+    <!DOCTYPE html>
+    <html lang="nl">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Clean Ride</title>
+      <style>
+        body {
+          margin: 0;
+          min-height: 100vh;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: #090a0d;
+          color: white;
+          font-family: Arial, sans-serif;
+          text-align: center;
+        }
 
-<head>
+        .box {
+          max-width: 600px;
+          margin: 20px;
+          padding: 40px;
+          border-radius: 20px;
+          background: #12151b;
+        }
 
-<meta charset="UTF-8">
+        h1 {
+          margin-top: 0;
+        }
 
-<meta
-name="viewport"
-content="width=device-width, initial-scale=1.0"
->
+        a {
+          color: #b8ff35;
+        }
+      </style>
+    </head>
 
-<title>Clean Ride</title>
-
-<style>
-
-body {
-  margin: 0;
-  padding: 30px;
-  font-family: Arial, sans-serif;
-  background: #090a0d;
-  color: white;
-  text-align: center;
+    <body>
+      <div class="box">
+        <h1>${escapeHtml(title)}</h1>
+        <p>${escapeHtml(text)}</p>
+        <p>
+          <a href="/">Terug naar Clean Ride</a>
+        </p>
+      </div>
+    </body>
+    </html>
+  `;
 }
 
-.box {
-  max-width: 600px;
-  margin: 80px auto;
-  background: #12151b;
-  padding: 35px;
-  border-radius: 20px;
-}
-
-h1 {
-  color: #b8ff35;
-}
-
-p {
-  color: #a9afb9;
-  font-size: 18px;
-  line-height: 1.6;
-}
-
-</style>
-
-</head>
-
-<body>
-
-<div class="box">
-
-<h1>${title}</h1>
-
-<p>${message}</p>
-
-</div>
-
-</body>
-
-</html>
-`;
-}
-
-
-// =====================================================
-// TEAM WACHTWOORD
-// =====================================================
+/* =========================
+   TEAM AUTH
+========================= */
 
 function requireTeamPassword(req, res, next) {
+  const password = req.headers["x-team-password"];
 
-  if (!TEAM_PASSWORD) {
-    return res.status(500).json({
-      success: false,
-      error: "TEAM_PASSWORD ontbreekt in Render."
-    });
-  }
-
-  const password =
-    req.headers["x-team-password"];
-
-  if (
-    !password ||
-    password !== TEAM_PASSWORD
-  ) {
+  if (!TEAM_PASSWORD || password !== TEAM_PASSWORD) {
     return res.status(401).json({
       success: false,
-      error: "Onjuist wachtwoord."
+      message: "Geen toegang."
     });
   }
 
   next();
 }
 
-
-// =====================================================
-// TEAM STATISTIEKEN
-// =====================================================
-
-app.get(
-  "/api/team/stats",
-  requireTeamPassword,
-  async (req, res) => {
-
-    try {
-
-      const revenueResult = await pool.query(`
-        SELECT COALESCE(
-          SUM(amount) FILTER (
-            WHERE status = 'accepted'
-          ),
-          0
-        ) AS revenue
-        FROM requests
-      `);
-
-      const costsResult = await pool.query(`
-        SELECT COALESCE(
-          SUM(amount),
-          0
-        ) AS costs
-        FROM costs
-      `);
-
-      const countsResult = await pool.query(`
-        SELECT
-          COUNT(*) FILTER (
-            WHERE status = 'accepted'
-          ) AS accepted,
-
-          COUNT(*) FILTER (
-            WHERE status = 'rejected'
-          ) AS rejected,
-
-          COUNT(*) AS total
-
-        FROM requests
-      `);
-
-      const customersResult = await pool.query(`
-        SELECT
-          name,
-          email,
-
-          COUNT(*) FILTER (
-            WHERE status = 'accepted'
-          ) AS cleanings,
-
-          COALESCE(
-            SUM(amount) FILTER (
-              WHERE status = 'accepted'
-            ),
-            0
-          ) AS revenue,
-
-          MAX(created_at) FILTER (
-            WHERE status = 'accepted'
-          ) AS last_visit
-
-        FROM requests
-
-        GROUP BY name, email
-
-        ORDER BY last_visit DESC NULLS LAST
-      `);
-
-      const requestsResult = await pool.query(`
-        SELECT
-          id,
-          name,
-          email,
-          phone,
-          service,
-          message,
-          status,
-          amount,
-          created_at,
-          decided_at
-
-        FROM requests
-
-        ORDER BY created_at DESC
-
-        LIMIT 100
-      `);
-
-      const costsListResult = await pool.query(`
-        SELECT
-          id,
-          supplier,
-          description,
-          amount,
-          created_at
-
-        FROM costs
-
-        ORDER BY created_at DESC
-
-        LIMIT 100
-      `);
-
-      const revenue =
-        Number(revenueResult.rows[0].revenue || 0);
-
-      const costs =
-        Number(costsResult.rows[0].costs || 0);
-
-      const profit =
-        revenue - costs;
-
-      return res.json({
-
-        success: true,
-
-        financial: {
-          revenue,
-          costs,
-          profit,
-
-          margin:
-            revenue > 0
-              ? (profit / revenue) * 100
-              : 0
-        },
-
-        counts: {
-          accepted:
-            Number(countsResult.rows[0].accepted || 0),
-
-          rejected:
-            Number(countsResult.rows[0].rejected || 0),
-
-          total:
-            Number(countsResult.rows[0].total || 0)
-        },
-
-        customers:
-          customersResult.rows.map(customer => ({
-            name: customer.name,
-            email: customer.email,
-
-            cleanings:
-              Number(customer.cleanings || 0),
-
-            revenue:
-              Number(customer.revenue || 0),
-
-            lastVisit:
-              customer.last_visit
-          })),
-
-        requests:
-          requestsResult.rows.map(request => ({
-            id: request.id,
-            name: request.name,
-            email: request.email,
-            phone: request.phone,
-            service: request.service,
-            message: request.message,
-            status: request.status,
-
-            amount:
-              Number(request.amount || 0),
-
-            createdAt:
-              request.created_at,
-
-            decidedAt:
-              request.decided_at
-          })),
-
-        costsList:
-          costsListResult.rows.map(cost => ({
-            id: cost.id,
-            supplier: cost.supplier,
-            description: cost.description,
-
-            amount:
-              Number(cost.amount || 0),
-
-            createdAt:
-              cost.created_at
-          }))
-      });
-
-    } catch (error) {
-
-      console.error(
-        "❌ /api/team/stats:",
-        error
-      );
-
-      return res.status(500).json({
-        success: false,
-        error: "Dashboard kon niet geladen worden."
-      });
-    }
-  }
-);
-
-
-// =====================================================
-// TEAM KOST TOEVOEGEN
-// =====================================================
-
-app.post(
-  "/api/team/cost",
-  requireTeamPassword,
-  async (req, res) => {
-
-    try {
-
-      const {
-        supplier,
-        description,
-        amount
-      } = req.body;
-
-      const numericAmount =
-        Number(amount);
-
-      if (
-        !supplier ||
-        !description ||
-        !Number.isFinite(numericAmount) ||
-        numericAmount <= 0
-      ) {
-        return res.status(400).json({
-          success: false,
-          error:
-            "Vul leverancier, omschrijving en een geldig bedrag in."
-        });
-      }
-
-      const result = await pool.query(
-        `
-        INSERT INTO costs
-        (
-          supplier,
-          description,
-          amount
-        )
-        VALUES ($1,$2,$3)
-        RETURNING *
-        `,
-        [
-          supplier,
-          description,
-          numericAmount
-        ]
-      );
-
-      return res.json({
-        success: true,
-        cost: result.rows[0]
-      });
-
-    } catch (error) {
-
-      console.error(
-        "❌ /api/team/cost:",
-        error
-      );
-
-      return res.status(500).json({
-        success: false,
-        error: "Kosten konden niet worden opgeslagen."
-      });
-    }
-  }
-);
-
-
-// =====================================================
-// HEALTH
-// =====================================================
-
-app.get("/health", async (req, res) => {
-
+/* =========================
+   TEAM STATS
+========================= */
+
+app.get("/api/team/stats", requireTeamPassword, async (req, res) => {
   try {
+    const requestsResult = await pool.query(`
+      SELECT *
+      FROM requests
+      ORDER BY created_at DESC
+    `);
 
-    await pool.query("SELECT 1");
+    const costsResult = await pool.query(`
+      SELECT *
+      FROM costs
+      ORDER BY created_at DESC
+    `);
 
-    return res.json({
+    const requests = requestsResult.rows;
+    const costs = costsResult.rows;
+
+    const revenue = requests
+      .filter(r => r.status === "accepted")
+      .reduce((sum, r) => sum + Number(r.price || 0), 0);
+
+    const totalCosts = costs
+      .reduce((sum, c) => sum + Number(c.amount || 0), 0);
+
+    const profit = revenue - totalCosts;
+
+    res.json({
       success: true,
-      status: "ok",
-      database: "ok"
+      revenue,
+      costs: totalCosts,
+      profit,
+      totalRequests: requests.length,
+      accepted: requests.filter(r => r.status === "accepted").length,
+      rejected: requests.filter(r => r.status === "rejected").length,
+      pending: requests.filter(r => r.status === "pending").length,
+      requests,
+      costs
     });
-
   } catch (error) {
+    console.error("Team stats fout:", error);
 
-    console.error("❌ Health:", error);
-
-    return res.status(500).json({
+    res.status(500).json({
       success: false,
-      status: "error",
-      database: "error"
+      message: "Kon teamgegevens niet laden."
     });
   }
 });
 
+/* =========================
+   TEAM KOST TOEVOEGEN
+========================= */
 
-// =====================================================
-// API 404
-// =====================================================
+app.post("/api/team/cost", requireTeamPassword, async (req, res) => {
+  try {
+    const { description, amount } = req.body;
+
+    if (!description || !amount) {
+      return res.status(400).json({
+        success: false,
+        message: "Beschrijving en bedrag zijn verplicht."
+      });
+    }
+
+    await pool.query(
+      `
+      INSERT INTO costs
+      (description, amount)
+      VALUES ($1, $2)
+      `,
+      [description, Number(amount)]
+    );
+
+    res.json({
+      success: true
+    });
+  } catch (error) {
+    console.error("Kosten fout:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "Kon kost niet toevoegen."
+    });
+  }
+});
+
+/* =========================
+   HEALTH
+========================= */
+
+app.get("/health", (req, res) => {
+  res.json({
+    status: "ok",
+    service: "Clean Ride"
+  });
+});
+
+/* =========================
+   API 404
+========================= */
 
 app.use("/api", (req, res) => {
-
-  return res.status(404).json({
+  res.status(404).json({
     success: false,
-    error: "API route niet gevonden."
+    message: "API endpoint niet gevonden."
   });
 });
 
+/* =========================
+   FOUTAFHANDELING
+========================= */
 
-// =====================================================
-// FOUTAFHANDELING
-// =====================================================
+app.use((error, req, res, next) => {
+  console.error("Server fout:", error);
 
-app.use((err, req, res, next) => {
-
-  console.error("❌ Server error:", err);
-
-  if (res.headersSent) {
-    return next(err);
-  }
-
-  return res.status(500).json({
-    success: false,
-    error: "Interne serverfout."
-  });
+  res.status(500).send("Interne serverfout.");
 });
 
-
-// =====================================================
-// START
-// =====================================================
+/* =========================
+   START
+========================= */
 
 async function startServer() {
-
   try {
-
     await initDatabase();
 
-    app.listen(
-      PORT,
-      "0.0.0.0",
-      () => {
-
-        console.log("");
-        console.log("=================================");
-        console.log("🚲 CLEAN RIDE SERVER");
-        console.log("=================================");
-        console.log(`✅ Poort: ${PORT}`);
-        console.log(`✅ Website: ${BASE_URL}`);
-        console.log("✅ Database verbonden");
-        console.log("✅ Server gestart");
-        console.log("=================================");
-        console.log("");
-
-      }
-    );
-
+    app.listen(PORT, () => {
+      console.log("");
+      console.log("=================================");
+      console.log("🚲 CLEAN RIDE SERVER");
+      console.log("=================================");
+      console.log(`✅ Poort: ${PORT}`);
+      console.log(`✅ Website: ${BASE_URL}`);
+      console.log("=================================");
+    });
   } catch (error) {
-
-    console.error(
-      "❌ SERVER KON NIET STARTEN:"
-    );
-
-    console.error(error);
-
+    console.error("❌ Server kon niet starten:", error);
     process.exit(1);
   }
 }
-
 
 startServer();
 ```
