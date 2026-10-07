@@ -1,1343 +1,1502 @@
+```html
 <!DOCTYPE html>
 <html lang="nl">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Clean Ride — Professionele Fietswassing</title>
-
-<meta name="description" content="Clean Ride — professionele fietswassing in Kruisem en omgeving. Kies Basic Wash, Grondige Reiniging, Ultimate Clean of het jaarabonnement.">
+<title>Team Clean Ride</title>
 
 <style>
-:root{
-  --bg:#07090c;
-  --card:#10141a;
-  --card2:#151a21;
-  --pink:#ff2f8a;
-  --green:#b8ff35;
-  --blue:#28a9ff;
-  --white:#f5f7fa;
-  --muted:#9da5b0;
-  --border:#242a33;
-  --danger:#ff4d6d;
+:root {
+  --bg: #090a0d;
+  --card: #12151b;
+  --card2: #181c24;
+  --pink: #ff2f8a;
+  --green: #b8ff35;
+  --blue: #28a9ff;
+  --white: #f5f7fa;
+  --muted: #9ba2ad;
+  --border: #272c35;
+  --danger: #ff4f70;
 }
 
-*{
-  box-sizing:border-box;
-  margin:0;
-  padding:0;
+* {
+  box-sizing: border-box;
 }
 
-html{
-  scroll-behavior:smooth;
-}
-
-body{
-  font-family:Arial,Helvetica,sans-serif;
-  background:
-    radial-gradient(circle at 20% 10%,rgba(255,47,138,.10),transparent 30%),
-    radial-gradient(circle at 80% 20%,rgba(40,169,255,.08),transparent 30%),
-    var(--bg);
-  color:var(--white);
-  line-height:1.6;
-}
-
-a{
-  color:inherit;
-  text-decoration:none;
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--white);
+  font-family: Arial, Helvetica, sans-serif;
 }
 
 button,
-input,
-select,
-textarea{
-  font:inherit;
+input {
+  font: inherit;
 }
 
-/* NAV */
-
-.nav{
-  position:sticky;
-  top:0;
-  z-index:100;
-  backdrop-filter:blur(16px);
-  background:rgba(7,9,12,.88);
-  border-bottom:1px solid rgba(255,255,255,.06);
-}
-
-.nav-inner{
-  max-width:1150px;
-  margin:auto;
-  min-height:72px;
-  padding:0 22px;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:20px;
-}
-
-.logo{
-  font-size:22px;
-  font-weight:900;
-  letter-spacing:1px;
-}
-
-.logo span{
-  color:var(--green);
+.hidden {
+  display: none !important;
 }
 
-.nav-links{
-  display:flex;
-  align-items:center;
-  gap:26px;
-  color:#c9ced6;
-  font-size:14px;
-}
 
-.nav-links a:hover{
-  color:white;
-}
+/* =====================================================
+   LOGIN
+===================================================== */
 
-.nav-book{
-  background:var(--pink);
-  color:white!important;
-  padding:11px 18px;
-  border-radius:999px;
-  font-weight:800;
-  box-shadow:0 8px 25px rgba(255,47,138,.2);
+.login-screen {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
 }
 
-.nav-book:hover{
-  transform:translateY(-1px);
+.login-box {
+  width: 100%;
+  max-width: 430px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  padding: 35px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.35);
 }
-
-/* HERO */
 
-.hero{
-  max-width:1150px;
-  margin:auto;
-  min-height:650px;
-  padding:90px 22px 80px;
-  display:flex;
-  align-items:center;
+.logo {
+  font-size: 34px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  margin-bottom: 5px;
 }
 
-.hero-content{
-  max-width:800px;
+.logo span {
+  color: var(--green);
 }
 
-.badge{
-  display:inline-flex;
-  align-items:center;
-  gap:8px;
-  padding:8px 13px;
-  border:1px solid rgba(184,255,53,.25);
-  background:rgba(184,255,53,.07);
-  color:var(--green);
-  border-radius:999px;
-  font-size:13px;
-  font-weight:800;
-  margin-bottom:22px;
+.login-subtitle {
+  color: var(--muted);
+  margin-top: 0;
+  margin-bottom: 30px;
 }
 
-.hero h1{
-  font-size:clamp(45px,8vw,82px);
-  line-height:.95;
-  letter-spacing:-4px;
-  margin-bottom:25px;
+label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: bold;
 }
 
-.hero h1 .pink{
-  color:var(--pink);
+input {
+  width: 100%;
+  padding: 14px 15px;
+  border: 1px solid var(--border);
+  background: #0d1015;
+  color: white;
+  border-radius: 12px;
+  outline: none;
 }
 
-.hero h1 .green{
-  color:var(--green);
+input:focus {
+  border-color: var(--green);
 }
 
-.hero-text{
-  max-width:650px;
-  color:var(--muted);
-  font-size:18px;
-  margin-bottom:32px;
+.primary-button {
+  width: 100%;
+  margin-top: 18px;
+  border: 0;
+  border-radius: 12px;
+  padding: 14px;
+  background: var(--green);
+  color: #111;
+  font-weight: 900;
+  cursor: pointer;
 }
 
-.hero-buttons{
-  display:flex;
-  flex-wrap:wrap;
-  gap:12px;
+.primary-button:hover {
+  filter: brightness(1.08);
 }
 
-.btn{
-  display:inline-flex;
-  justify-content:center;
-  align-items:center;
-  min-height:50px;
-  padding:0 22px;
-  border-radius:13px;
-  font-weight:900;
-  border:1px solid transparent;
-  cursor:pointer;
-  transition:.2s;
+.login-error {
+  margin-top: 15px;
+  color: var(--danger);
+  font-weight: bold;
 }
 
-.btn:hover{
-  transform:translateY(-2px);
-}
 
-.btn-primary{
-  background:var(--pink);
-  color:white;
-  box-shadow:0 10px 30px rgba(255,47,138,.2);
-}
+/* =====================================================
+   DASHBOARD
+===================================================== */
 
-.btn-secondary{
-  background:var(--card);
-  border-color:var(--border);
-  color:white;
+.dashboard {
+  min-height: 100vh;
 }
 
-/* SECTIONS */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
 
-section{
-  max-width:1150px;
-  margin:auto;
-  padding:80px 22px;
-}
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 
-.section-title{
-  text-align:center;
-  margin-bottom:45px;
-}
+  gap: 20px;
+  padding: 18px 25px;
 
-.section-title .small{
-  color:var(--green);
-  font-weight:900;
-  font-size:13px;
-  text-transform:uppercase;
-  letter-spacing:2px;
-  margin-bottom:10px;
-}
+  background: rgba(9,10,13,.94);
+  backdrop-filter: blur(12px);
 
-.section-title h2{
-  font-size:clamp(32px,5vw,48px);
-  line-height:1;
-  margin-bottom:12px;
+  border-bottom: 1px solid var(--border);
 }
 
-.section-title p{
-  color:var(--muted);
-  max-width:650px;
-  margin:auto;
+.top-title {
+  font-size: 23px;
+  font-weight: 900;
 }
 
-/* PRICES */
-
-.price-grid{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:18px;
+.top-title span {
+  color: var(--green);
 }
 
-.price-card{
-  position:relative;
-  background:linear-gradient(145deg,var(--card2),var(--card));
-  border:1px solid var(--border);
-  border-radius:22px;
-  padding:30px;
-  min-height:310px;
-  transition:.2s;
+.top-actions {
+  display: flex;
+  gap: 10px;
 }
 
-.price-card:hover{
-  transform:translateY(-5px);
-  border-color:#39414d;
+.small-button {
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: white;
+  padding: 10px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: bold;
 }
 
-.price-card.featured{
-  border:1px solid rgba(255,47,138,.55);
-  box-shadow:0 15px 50px rgba(255,47,138,.08);
+.small-button:hover {
+  border-color: var(--green);
 }
 
-.popular{
-  position:absolute;
-  right:18px;
-  top:18px;
-  background:var(--pink);
-  padding:6px 10px;
-  border-radius:999px;
-  font-size:11px;
-  font-weight:900;
+.logout-button:hover {
+  border-color: var(--pink);
+  color: var(--pink);
 }
 
-.price-card h3{
-  font-size:22px;
-  margin-bottom:12px;
+.container {
+  max-width: 1400px;
+  margin: auto;
+  padding: 30px 20px 60px;
 }
 
-.price{
-  font-size:43px;
-  font-weight:900;
-  margin-bottom:8px;
-}
 
-.price small{
-  font-size:14px;
-  color:var(--muted);
-  font-weight:normal;
-}
+/* =====================================================
+   HEADER
+===================================================== */
 
-.price-card p{
-  color:var(--muted);
-  margin-bottom:22px;
+.hero {
+  margin-bottom: 30px;
 }
 
-.price-card ul{
-  list-style:none;
-  display:grid;
-  gap:10px;
-  color:#dce0e6;
-  font-size:14px;
+.hero h1 {
+  margin: 0;
+  font-size: clamp(30px, 5vw, 52px);
 }
 
-.price-card li::before{
-  content:"✓";
-  color:var(--green);
-  font-weight:900;
-  margin-right:8px;
+.hero h1 span {
+  color: var(--green);
 }
-
-/* SUBSCRIPTION */
 
-.subscription{
-  background:
-    linear-gradient(135deg,rgba(184,255,53,.10),rgba(40,169,255,.05)),
-    var(--card);
-  border:1px solid rgba(184,255,53,.22);
-  border-radius:28px;
-  padding:42px;
-  display:grid;
-  grid-template-columns:1.5fr .8fr;
-  gap:30px;
-  align-items:center;
+.hero p {
+  color: var(--muted);
+  font-size: 17px;
 }
 
-.subscription h2{
-  font-size:35px;
-  margin-bottom:10px;
-}
 
-.subscription p{
-  color:var(--muted);
-}
+/* =====================================================
+   STAT CARDS
+===================================================== */
 
-.subscription-price{
-  text-align:center;
-  background:rgba(0,0,0,.18);
-  border-radius:20px;
-  padding:25px;
+.stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 15px;
+  margin-bottom: 25px;
 }
 
-.subscription-price strong{
-  display:block;
-  color:var(--green);
-  font-size:42px;
+.stat {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 22px;
 }
 
-/* STEPS */
-
-.steps{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:18px;
+.stat-label {
+  color: var(--muted);
+  font-size: 14px;
+  margin-bottom: 10px;
 }
 
-.step{
-  background:var(--card);
-  border:1px solid var(--border);
-  border-radius:20px;
-  padding:28px;
+.stat-value {
+  font-size: 30px;
+  font-weight: 900;
 }
 
-.step-number{
-  width:42px;
-  height:42px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  border-radius:50%;
-  background:rgba(255,47,138,.12);
-  color:var(--pink);
-  font-weight:900;
-  margin-bottom:18px;
+.green {
+  color: var(--green);
 }
 
-.step h3{
-  margin-bottom:8px;
+.pink {
+  color: var(--pink);
 }
 
-.step p{
-  color:var(--muted);
+.blue {
+  color: var(--blue);
 }
 
-/* FEATURES */
 
-.features{
-  display:grid;
-  grid-template-columns:repeat(4,1fr);
-  gap:15px;
-}
+/* =====================================================
+   GRID
+===================================================== */
 
-.feature{
-  padding:24px;
-  background:var(--card);
-  border:1px solid var(--border);
-  border-radius:18px;
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 20px;
 }
 
-.feature-icon{
-  font-size:27px;
-  margin-bottom:12px;
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 22px;
 }
 
-.feature h3{
-  font-size:16px;
-  margin-bottom:7px;
+.card h2 {
+  margin-top: 0;
 }
 
-.feature p{
-  color:var(--muted);
-  font-size:13px;
+.card-subtitle {
+  color: var(--muted);
+  margin-top: -8px;
 }
 
-/* FORM */
 
-.booking{
-  max-width:800px;
-  margin:auto;
-}
+/* =====================================================
+   COST FORM
+===================================================== */
 
-.form-box{
-  background:linear-gradient(145deg,var(--card2),var(--card));
-  border:1px solid var(--border);
-  border-radius:25px;
-  padding:32px;
+.cost-form {
+  display: grid;
+  gap: 12px;
 }
 
-.form-grid{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:16px;
+.cost-form button {
+  border: 0;
+  border-radius: 12px;
+  padding: 13px;
+  background: var(--green);
+  color: #111;
+  font-weight: 900;
+  cursor: pointer;
 }
 
-.field{
-  display:flex;
-  flex-direction:column;
-  gap:7px;
+.cost-message {
+  margin-top: 12px;
+  color: var(--muted);
 }
 
-.field.full{
-  grid-column:1 / -1;
-}
 
-label{
-  font-size:13px;
-  font-weight:800;
-  color:#d9dde3;
-}
+/* =====================================================
+   TABLE
+===================================================== */
 
-input,
-select,
-textarea{
-  width:100%;
-  border:1px solid var(--border);
-  background:#090c10;
-  color:white;
-  border-radius:12px;
-  padding:13px 14px;
-  outline:none;
+.table-card {
+  margin-bottom: 20px;
 }
 
-input:focus,
-select:focus,
-textarea:focus{
-  border-color:var(--blue);
-  box-shadow:0 0 0 3px rgba(40,169,255,.08);
+.table-wrapper {
+  width: 100%;
+  overflow-x: auto;
 }
 
-textarea{
-  min-height:120px;
-  resize:vertical;
+table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 850px;
 }
 
-.form-submit{
-  width:100%;
-  margin-top:18px;
-  border:0;
+th,
+td {
+  padding: 13px 10px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
 }
 
-.form-note{
-  text-align:center;
-  color:#777f89;
-  font-size:12px;
-  margin-top:12px;
+th {
+  color: var(--muted);
+  font-size: 13px;
+  text-transform: uppercase;
 }
-
-/* SUCCESS */
 
-.success{
-  display:none;
-  text-align:center;
-  padding:45px 20px;
+td {
+  font-size: 14px;
 }
 
-.success .check{
-  width:70px;
-  height:70px;
-  border-radius:50%;
-  background:rgba(184,255,53,.12);
-  color:var(--green);
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  font-size:35px;
-  margin:0 auto 20px;
+.status {
+  display: inline-block;
+  padding: 6px 9px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 900;
 }
 
-.success h2{
-  margin-bottom:10px;
+.status.accepted {
+  background: rgba(184,255,53,.12);
+  color: var(--green);
 }
 
-.success p{
-  color:var(--muted);
+.status.rejected {
+  background: rgba(255,47,138,.12);
+  color: var(--pink);
 }
 
-/* CONTACT */
-
-.contact{
-  text-align:center;
-  padding-bottom:100px;
+.status.pending {
+  background: rgba(40,169,255,.12);
+  color: var(--blue);
 }
 
-.contact-box{
-  background:var(--card);
-  border:1px solid var(--border);
-  border-radius:22px;
-  padding:35px;
-}
 
-.contact-box p{
-  color:var(--muted);
-  margin:8px 0 20px;
-}
+/* =====================================================
+   EMPTY
+===================================================== */
 
-.email{
-  color:var(--blue);
-  font-weight:900;
-  font-size:18px;
+.empty {
+  color: var(--muted);
+  padding: 20px 0;
 }
-
-/* FOOTER */
 
-footer{
-  border-top:1px solid rgba(255,255,255,.06);
-  text-align:center;
-  padding:35px 20px 45px;
-  color:#777f89;
-  font-size:13px;
-}
 
-footer strong{
-  color:white;
-  letter-spacing:1px;
-}
+/* =====================================================
+   FOOTER
+===================================================== */
 
-.sponsor{
-  color:#9da5b0;
+.footer {
+  text-align: center;
+  color: var(--muted);
+  padding: 30px 20px;
 }
 
-.team-link{
-  display:inline-block;
-  margin-top:18px;
-  color:#707780;
-  font-size:12px;
-  padding:7px 12px;
-  border:1px solid #242a33;
-  border-radius:999px;
-  transition:.2s;
+.footer strong {
+  color: white;
 }
 
-.team-link:hover{
-  color:white;
-  border-color:#444c57;
-}
 
-/* MOBILE */
+/* =====================================================
+   MOBILE
+===================================================== */
 
-@media(max-width:850px){
+@media (max-width: 900px) {
 
-  .nav-links{
-    gap:10px;
+  .stats {
+    grid-template-columns: 1fr 1fr;
   }
 
-  .nav-links a:not(.nav-book){
-    display:none;
-  }
-
-  .hero{
-    min-height:auto;
-    padding-top:70px;
-    padding-bottom:65px;
-  }
-
-  .price-grid,
-  .steps{
-    grid-template-columns:1fr;
-  }
-
-  .features{
-    grid-template-columns:1fr 1fr;
-  }
-
-  .subscription{
-    grid-template-columns:1fr;
-  }
-
-  .subscription-price{
-    text-align:center;
+  .grid {
+    grid-template-columns: 1fr;
   }
 }
 
-@media(max-width:600px){
+@media (max-width: 600px) {
 
-  .nav-inner{
-    min-height:62px;
-    padding:0 15px;
+  .topbar {
+    align-items: flex-start;
+    flex-direction: column;
   }
 
-  .logo{
-    font-size:19px;
+  .top-actions {
+    width: 100%;
   }
 
-  .nav-book{
-    padding:9px 14px;
-    font-size:13px;
+  .top-actions button {
+    flex: 1;
   }
 
-  .hero{
-    padding:55px 17px 60px;
+  .container {
+    padding: 20px 12px 40px;
   }
 
-  .hero h1{
-    font-size:50px;
-    letter-spacing:-2.5px;
+  .stats {
+    grid-template-columns: 1fr;
   }
 
-  .hero-text{
-    font-size:16px;
-  }
-
-  .hero-buttons{
-    display:grid;
-    grid-template-columns:1fr;
-  }
-
-  .btn{
-    width:100%;
-  }
-
-  section{
-    padding:60px 17px;
-  }
-
-  .section-title{
-    margin-bottom:30px;
-  }
-
-  .section-title h2{
-    font-size:34px;
-  }
-
-  .price-card{
-    min-height:auto;
-    padding:25px;
-  }
-
-  .subscription{
-    padding:25px;
-    border-radius:22px;
-  }
-
-  .subscription h2{
-    font-size:29px;
-  }
-
-  .features{
-    grid-template-columns:1fr;
-  }
-
-  .form-box{
-    padding:20px;
-    border-radius:20px;
-  }
-
-  .form-grid{
-    grid-template-columns:1fr;
-    gap:14px;
-  }
-
-  .field.full{
-    grid-column:auto;
-  }
-
-  input,
-  select,
-  textarea{
-    font-size:16px;
-  }
-
-  .contact-box{
-    padding:25px 18px;
-  }
-}
-
-@media(max-width:380px){
-
-  .hero h1{
-    font-size:43px;
-  }
-
-  .price{
-    font-size:37px;
+  .login-box {
+    padding: 25px;
   }
 }
 </style>
 </head>
 
+
 <body>
 
-<!-- NAVIGATION -->
 
-<nav class="nav">
-  <div class="nav-inner">
+<!-- =====================================================
+     LOGIN
+===================================================== -->
 
-    <a href="#" class="logo">
+<section id="loginScreen" class="login-screen">
+
+  <div class="login-box">
+
+    <div class="logo">
       CLEAN <span>RIDE</span>
-    </a>
-
-    <div class="nav-links">
-      <a href="#prijzen">Prijzen</a>
-      <a href="#werkwijze">Werkwijze</a>
-      <a href="#boeken" class="nav-book">Boeken</a>
     </div>
 
-  </div>
-</nav>
-
-
-<!-- HERO -->
-
-<header class="hero">
-
-  <div class="hero-content">
-
-    <div class="badge">
-      🚲 Professionele fietswassing
-    </div>
-
-    <h1>
-      Jouw fiets.<br>
-      <span class="pink">Superclean.</span><br>
-      <span class="green">Klaar om te rijden.</span>
-    </h1>
-
-    <p class="hero-text">
-      Van een snelle wasbeurt tot een volledige grondige reiniging.
-      Clean Ride maakt jouw fiets weer proper, fris en klaar voor de volgende rit.
+    <p class="login-subtitle">
+      Team Clean Ride
     </p>
 
-    <div class="hero-buttons">
-      <a href="#boeken" class="btn btn-primary">
-        🚲 Fiets laten wassen
-      </a>
+    <label for="teamPassword">
+      Team wachtwoord
+    </label>
 
-      <a href="#prijzen" class="btn btn-secondary">
-        Bekijk prijzen
-      </a>
-    </div>
+    <input
+      id="teamPassword"
+      type="password"
+      placeholder="Vul het teamwachtwoord in"
+      autocomplete="current-password"
+    >
 
-  </div>
+    <button
+      class="primary-button"
+      onclick="login()"
+    >
+      🔐 Inloggen
+    </button>
 
-</header>
-
-
-<!-- PRIJZEN -->
-
-<section id="prijzen">
-
-  <div class="section-title">
-    <div class="small">Onze diensten</div>
-    <h2>Kies jouw Clean</h2>
-    <p>
-      Simpel, duidelijk en zonder verborgen kosten.
-    </p>
-  </div>
-
-  <div class="price-grid">
-
-    <div class="price-card">
-
-      <h3>Basic Wash</h3>
-
-      <div class="price">
-        €7
-      </div>
-
-      <p>
-        Een snelle basisreiniging voor je fiets.
-      </p>
-
-      <ul>
-        <li>Frame reinigen</li>
-        <li>Wielen reinigen</li>
-        <li>Grof vuil verwijderen</li>
-        <li>Fiets netjes afdrogen</li>
-      </ul>
-
-    </div>
-
-
-    <div class="price-card featured">
-
-      <div class="popular">
-        POPULAIR
-      </div>
-
-      <h3>Grondige Reiniging</h3>
-
-      <div class="price">
-        €11
-      </div>
-
-      <p>
-        Onze meest gekozen reiniging voor een echt propere fiets.
-      </p>
-
-      <ul>
-        <li>Volledige fietsreiniging</li>
-        <li>Frame en wielen</li>
-        <li>Aandrijving reinigen</li>
-        <li>Grondig vuil verwijderen</li>
-        <li>Netjes afdrogen</li>
-      </ul>
-
-    </div>
-
-
-    <div class="price-card">
-
-      <h3>Ultimate Clean</h3>
-
-      <div class="price">
-        €15
-      </div>
-
-      <p>
-        Voor wie zijn fiets maximaal proper wil.
-      </p>
-
-      <ul>
-        <li>Alles van Grondige Reiniging</li>
-        <li>Extra aandacht voor details</li>
-        <li>Dieptereiniging</li>
-        <li>Afwerking van de fiets</li>
-      </ul>
-
-    </div>
-
-  </div>
-
-  <div style="
-    text-align:center;
-    margin-top:22px;
-    color:#9da5b0;
-    font-size:13px;
-  ">
-    💩 Bij extreem veel modder: <strong style="color:white;">+€2</strong>
-  </div>
-
-</section>
-
-
-<!-- ABONNEMENT -->
-
-<section>
-
-  <div class="subscription">
-
-    <div>
-
-      <div style="
-        color:var(--green);
-        font-size:13px;
-        font-weight:900;
-        text-transform:uppercase;
-        letter-spacing:2px;
-        margin-bottom:8px;
-      ">
-        Voor echte veelrijders
-      </div>
-
-      <h2>Clean Ride Jaarabonnement</h2>
-
-      <p>
-        Voor €100 per jaar krijg je onbeperkt
-        <strong style="color:white;">Grondige Reiniging</strong>.
-      </p>
-
-      <p style="margin-top:12px;">
-        Ideaal als je vaak fietst, traint of wedstrijden rijdt.
-      </p>
-
-    </div>
-
-    <div class="subscription-price">
-
-      <span style="color:#9da5b0;">
-        per jaar
-      </span>
-
-      <strong>
-        €100
-      </strong>
-
-      <span style="color:#9da5b0;">
-        onbeperkt Grondige Reiniging
-      </span>
-
-    </div>
+    <div
+      id="loginError"
+      class="login-error hidden"
+    ></div>
 
   </div>
 
 </section>
 
 
-<!-- WERKWIJZE -->
+<!-- =====================================================
+     DASHBOARD
+===================================================== -->
 
-<section id="werkwijze">
+<section
+  id="dashboard"
+  class="dashboard hidden"
+>
 
-  <div class="section-title">
+  <header class="topbar">
 
-    <div class="small">Hoe werkt het?</div>
+    <div class="top-title">
+      🚲 CLEAN <span>RIDE</span>
+    </div>
 
-    <h2>Van vuil naar clean</h2>
+    <div class="top-actions">
 
-    <p>
-      Je hoeft maar drie dingen te doen.
-    </p>
+      <button
+        class="small-button"
+        onclick="loadDashboard()"
+      >
+        ↻ Vernieuwen
+      </button>
 
-  </div>
-
-
-  <div class="steps">
-
-    <div class="step">
-
-      <div class="step-number">
-        1
-      </div>
-
-      <h3>Vraag een reiniging aan</h3>
-
-      <p>
-        Vul het formulier in en kies de gewenste reiniging.
-      </p>
+      <button
+        class="small-button logout-button"
+        onclick="logout()"
+      >
+        Uitloggen
+      </button>
 
     </div>
 
-
-    <div class="step">
-
-      <div class="step-number">
-        2
-      </div>
-
-      <h3>Wij bevestigen</h3>
-
-      <p>
-        We bekijken je aanvraag en sturen je zo snel mogelijk een bevestiging.
-      </p>
-
-    </div>
+  </header>
 
 
-    <div class="step">
+  <main class="container">
 
-      <div class="step-number">
-        3
-      </div>
 
-      <h3>Clean Ride</h3>
+    <!-- =================================================
+         HERO
+    ================================================== -->
+
+    <section class="hero">
+
+      <h1>
+        Team <span>Clean Ride</span>
+      </h1>
 
       <p>
-        Breng je fiets binnen en wij zorgen ervoor dat hij weer proper is.
+        Beheer aanvragen, klanten, omzet en kosten.
       </p>
 
-    </div>
-
-  </div>
-
-</section>
+    </section>
 
 
-<!-- EXTRA -->
+    <!-- =================================================
+         STATISTIEKEN
+    ================================================== -->
 
-<section>
+    <section class="stats">
 
-  <div class="section-title">
+      <div class="stat">
 
-    <div class="small">Waarom Clean Ride?</div>
-
-    <h2>Meer dan gewoon afspuiten</h2>
-
-  </div>
-
-
-  <div class="features">
-
-    <div class="feature">
-      <div class="feature-icon">🧽</div>
-      <h3>Grondig</h3>
-      <p>
-        We nemen de tijd om je fiets proper te maken.
-      </p>
-    </div>
-
-    <div class="feature">
-      <div class="feature-icon">🚴</div>
-      <h3>Voor fietsers</h3>
-      <p>
-        Gericht op racefietsen, MTB's en andere sportfietsen.
-      </p>
-    </div>
-
-    <div class="feature">
-      <div class="feature-icon">✨</div>
-      <h3>Netjes afgewerkt</h3>
-      <p>
-        Geen half werk. We leveren je fiets proper af.
-      </p>
-    </div>
-
-    <div class="feature">
-      <div class="feature-icon">💚</div>
-      <h3>Lokale service</h3>
-      <p>
-        Een kleine lokale onderneming met aandacht voor elke fiets.
-      </p>
-    </div>
-
-  </div>
-
-</section>
-
-
-<!-- BOEKEN -->
-
-<section id="boeken">
-
-  <div class="section-title">
-
-    <div class="small">Aanvraag</div>
-
-    <h2>Laat je fiets wassen</h2>
-
-    <p>
-      Vul hieronder je gegevens in. We nemen daarna contact met je op.
-    </p>
-
-  </div>
-
-
-  <div class="booking">
-
-    <div class="form-box" id="formBox">
-
-      <form id="bookingForm">
-
-        <div class="form-grid">
-
-          <div class="field">
-
-            <label for="name">
-              Naam *
-            </label>
-
-            <input
-              id="name"
-              name="name"
-              type="text"
-              placeholder="Voor- en achternaam"
-              required
-            >
-
-          </div>
-
-
-          <div class="field">
-
-            <label for="email">
-              E-mail *
-            </label>
-
-            <input
-              id="email"
-              name="email"
-              type="email"
-              placeholder="jouw@email.be"
-              required
-            >
-
-          </div>
-
-
-          <div class="field">
-
-            <label for="phone">
-              Telefoonnummer
-            </label>
-
-            <input
-              id="phone"
-              name="phone"
-              type="tel"
-              placeholder="0470 00 00 00"
-            >
-
-          </div>
-
-
-          <div class="field">
-
-            <label for="service">
-              Reiniging *
-            </label>
-
-            <select
-              id="service"
-              name="service"
-              required
-            >
-
-              <option value="">
-                Kies een reiniging
-              </option>
-
-              <option value="Basic Wash">
-                Basic Wash — €7
-              </option>
-
-              <option value="Grondige Reiniging">
-                Grondige Reiniging — €11
-              </option>
-
-              <option value="Ultimate Clean">
-                Ultimate Clean — €15
-              </option>
-
-              <option value="Jaarabonnement">
-                Jaarabonnement — €100
-              </option>
-
-            </select>
-
-          </div>
-
-
-          <div class="field full">
-
-            <label for="message">
-              Extra informatie
-            </label>
-
-            <textarea
-              id="message"
-              name="message"
-              placeholder="Bijvoorbeeld: veel modder, racefiets, MTB, aantal fietsen..."
-            ></textarea>
-
-          </div>
-
+        <div class="stat-label">
+          Omzet
         </div>
 
-
-        <button
-          type="submit"
-          class="btn btn-primary form-submit"
-          id="submitButton"
+        <div
+          id="revenue"
+          class="stat-value green"
         >
-          Aanvraag versturen →
-        </button>
-
-        <div class="form-note">
-          Je aanvraag is nog geen definitieve afspraak.
+          €0,00
         </div>
 
-      </form>
+      </div>
 
 
-      <!-- SUCCESS -->
+      <div class="stat">
 
-      <div class="success" id="successBox">
-
-        <div class="check">
-          ✓
+        <div class="stat-label">
+          Kosten
         </div>
 
-        <h2>Bedankt voor je aanvraag!</h2>
+        <div
+          id="costs"
+          class="stat-value pink"
+        >
+          €0,00
+        </div>
+
+      </div>
+
+
+      <div class="stat">
+
+        <div class="stat-label">
+          Winst
+        </div>
+
+        <div
+          id="profit"
+          class="stat-value blue"
+        >
+          €0,00
+        </div>
+
+      </div>
+
+
+      <div class="stat">
+
+        <div class="stat-label">
+          Aanvragen
+        </div>
+
+        <div
+          id="totalRequests"
+          class="stat-value"
+        >
+          0
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- =================================================
+         SECONDARY STATS
+    ================================================== -->
+
+    <section class="stats">
+
+      <div class="stat">
+
+        <div class="stat-label">
+          Geaccepteerd
+        </div>
+
+        <div
+          id="acceptedRequests"
+          class="stat-value green"
+        >
+          0
+        </div>
+
+      </div>
+
+
+      <div class="stat">
+
+        <div class="stat-label">
+          Geweigerd
+        </div>
+
+        <div
+          id="rejectedRequests"
+          class="stat-value pink"
+        >
+          0
+        </div>
+
+      </div>
+
+
+      <div class="stat">
+
+        <div class="stat-label">
+          Winstmarge
+        </div>
+
+        <div
+          id="margin"
+          class="stat-value blue"
+        >
+          0%
+        </div>
+
+      </div>
+
+
+      <div class="stat">
+
+        <div class="stat-label">
+          Status
+        </div>
+
+        <div
+          id="serverStatus"
+          class="stat-value green"
+        >
+          Online
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- =================================================
+         KOST TOEVOEGEN
+    ================================================== -->
+
+    <section class="grid">
+
+      <div class="card">
+
+        <h2>
+          💶 Kosten toevoegen
+        </h2>
+
+        <p class="card-subtitle">
+          Voeg een nieuwe bedrijfskost toe.
+        </p>
+
+        <form
+          class="cost-form"
+          onsubmit="addCost(event)"
+        >
+
+          <input
+            id="supplier"
+            type="text"
+            placeholder="Leverancier"
+            required
+          >
+
+          <input
+            id="description"
+            type="text"
+            placeholder="Omschrijving"
+            required
+          >
+
+          <input
+            id="costAmount"
+            type="number"
+            step="0.01"
+            min="0.01"
+            placeholder="Bedrag (€)"
+            required
+          >
+
+          <button type="submit">
+            Kosten opslaan
+          </button>
+
+        </form>
+
+        <div
+          id="costMessage"
+          class="cost-message"
+        ></div>
+
+      </div>
+
+
+      <div class="card">
+
+        <h2>
+          📊 Overzicht
+        </h2>
+
+        <p class="card-subtitle">
+          Je financiële situatie.
+        </p>
 
         <p>
-          We behandelen het nu.
-          Je krijgt zo snel mogelijk bericht van
-          <strong style="color:white;">Clean Ride</strong>
-          via e-mail.
+          <strong>Omzet:</strong>
+          <span id="overviewRevenue">€0,00</span>
+        </p>
+
+        <p>
+          <strong>Kosten:</strong>
+          <span id="overviewCosts">€0,00</span>
+        </p>
+
+        <p>
+          <strong>Winst:</strong>
+          <span id="overviewProfit">€0,00</span>
+        </p>
+
+        <p>
+          <strong>Marge:</strong>
+          <span id="overviewMargin">0%</span>
         </p>
 
       </div>
 
-    </div>
+    </section>
 
-  </div>
+
+    <!-- =================================================
+         AANVRAGEN
+    ================================================== -->
+
+    <section class="card table-card">
+
+      <h2>
+        📋 Aanvragen
+      </h2>
+
+      <p class="card-subtitle">
+        De laatste Clean Ride-aanvragen.
+      </p>
+
+      <div class="table-wrapper">
+
+        <table>
+
+          <thead>
+
+            <tr>
+              <th>Naam</th>
+              <th>E-mail</th>
+              <th>Telefoon</th>
+              <th>Service</th>
+              <th>Bedrag</th>
+              <th>Status</th>
+              <th>Datum</th>
+            </tr>
+
+          </thead>
+
+          <tbody id="requestsTable">
+          </tbody>
+
+        </table>
+
+      </div>
+
+    </section>
+
+
+    <!-- =================================================
+         KLANTEN
+    ================================================== -->
+
+    <section class="card table-card">
+
+      <h2>
+        👥 Klanten
+      </h2>
+
+      <p class="card-subtitle">
+        Overzicht van klanten en hun bezoeken.
+      </p>
+
+      <div class="table-wrapper">
+
+        <table>
+
+          <thead>
+
+            <tr>
+              <th>Naam</th>
+              <th>E-mail</th>
+              <th>Reinigingen</th>
+              <th>Omzet</th>
+              <th>Laatste bezoek</th>
+            </tr>
+
+          </thead>
+
+          <tbody id="customersTable">
+          </tbody>
+
+        </table>
+
+      </div>
+
+    </section>
+
+
+    <!-- =================================================
+         KOSTENLIJST
+    ================================================== -->
+
+    <section class="card table-card">
+
+      <h2>
+        💳 Kosten
+      </h2>
+
+      <p class="card-subtitle">
+        Overzicht van geregistreerde kosten.
+      </p>
+
+      <div class="table-wrapper">
+
+        <table>
+
+          <thead>
+
+            <tr>
+              <th>Leverancier</th>
+              <th>Omschrijving</th>
+              <th>Bedrag</th>
+              <th>Datum</th>
+            </tr>
+
+          </thead>
+
+          <tbody id="costsTable">
+          </tbody>
+
+        </table>
+
+      </div>
+
+    </section>
+
+
+  </main>
+
+
+  <footer class="footer">
+    <strong>Clean Ride</strong>
+    — Team Dashboard
+    <br>
+    © 2026 Clean Ride
+  </footer>
 
 </section>
-
-
-<!-- CONTACT -->
-
-<section class="contact">
-
-  <div class="contact-box">
-
-    <h2>Contact</h2>
-
-    <p>
-      Heb je nog een vraag of wil je iets bespreken?
-    </p>
-
-    <a
-      href="mailto:clean-ride@hotmail.com"
-      class="email"
-    >
-      clean-ride@hotmail.com
-    </a>
-
-  </div>
-
-</section>
-
-
-<!-- FOOTER -->
-
-<footer>
-
-  <strong>CLEAN RIDE</strong>
-  — professionele fietswassing & onderhoud
-
-  <br><br>
-
-  <span class="sponsor">
-    Sponsored by Anne en Stefaan
-  </span>
-
-  <br>
-
-  © 2026 Clean Ride
-
-  <br>
-
-  <a
-    href="/team.html"
-    class="team-link"
-  >
-    🔒 Team Clean Ride
-  </a>
-
-</footer>
 
 
 <script>
 
-const form = document.getElementById("bookingForm");
-const formBox = document.getElementById("formBox");
-const successBox = document.getElementById("successBox");
-const submitButton = document.getElementById("submitButton");
+let teamPassword = "";
 
 
-form.addEventListener("submit", async function(event){
+// =====================================================
+// LOGIN
+// =====================================================
 
-  event.preventDefault();
+async function login() {
 
-  submitButton.disabled = true;
-  submitButton.textContent = "Aanvraag versturen...";
+  const input =
+    document.getElementById("teamPassword");
 
+  const error =
+    document.getElementById("loginError");
 
-  const formData = new FormData(form);
+  const password =
+    input.value.trim();
 
-  const data = {
-    name: formData.get("name"),
-    email: formData.get("email"),
-    phone: formData.get("phone"),
-    service: formData.get("service"),
-    message: formData.get("message")
-  };
+  if (!password) {
 
+    error.textContent =
+      "Vul eerst het teamwachtwoord in.";
 
-  try{
+    error.classList.remove("hidden");
 
-    const response = await fetch("/api/request", {
+    return;
+  }
 
-      method:"POST",
+  try {
 
-      headers:{
-        "Content-Type":"application/json"
-      },
+    const response =
+      await fetch("/api/team/stats", {
+        headers: {
+          "x-team-password": password
+        }
+      });
 
-      body:JSON.stringify(data)
+    const data =
+      await response.json();
 
-    });
+    if (!response.ok || !data.success) {
 
+      error.textContent =
+        data.error || "Onjuist wachtwoord.";
 
-    const result = await response.json();
+      error.classList.remove("hidden");
 
-
-    if(!response.ok || !result.success){
-
-      throw new Error(
-        result.message || "Er ging iets mis."
-      );
-
+      return;
     }
 
+    teamPassword = password;
 
-    form.style.display = "none";
-    successBox.style.display = "block";
-
-
-  }catch(error){
-
-    alert(
-      "Er ging iets mis bij het versturen van je aanvraag.\n\n" +
-      "Probeer het opnieuw of mail naar clean-ride@hotmail.com."
+    sessionStorage.setItem(
+      "cleanRideTeamPassword",
+      password
     );
 
-    submitButton.disabled = false;
-    submitButton.textContent = "Aanvraag versturen →";
+    error.classList.add("hidden");
 
+    document
+      .getElementById("loginScreen")
+      .classList.add("hidden");
+
+    document
+      .getElementById("dashboard")
+      .classList.remove("hidden");
+
+    renderDashboard(data);
+
+  } catch (error) {
+
+    error.textContent =
+      "Kan geen verbinding maken met de server.";
+
+    error.classList.remove("hidden");
+  }
+}
+
+
+// =====================================================
+// AUTOMATISCH INLOGGEN
+// =====================================================
+
+window.addEventListener("DOMContentLoaded", async () => {
+
+  const saved =
+    sessionStorage.getItem(
+      "cleanRideTeamPassword"
+    );
+
+  if (!saved) {
+    return;
+  }
+
+  teamPassword = saved;
+
+  try {
+
+    const response =
+      await fetch("/api/team/stats", {
+        headers: {
+          "x-team-password": teamPassword
+        }
+      });
+
+    const data =
+      await response.json();
+
+    if (response.ok && data.success) {
+
+      document
+        .getElementById("loginScreen")
+        .classList.add("hidden");
+
+      document
+        .getElementById("dashboard")
+        .classList.remove("hidden");
+
+      renderDashboard(data);
+
+    } else {
+
+      sessionStorage.removeItem(
+        "cleanRideTeamPassword"
+      );
+
+      teamPassword = "";
+    }
+
+  } catch (error) {
+
+    console.error(error);
   }
 
 });
+
+
+// =====================================================
+// DASHBOARD LADEN
+// =====================================================
+
+async function loadDashboard() {
+
+  if (!teamPassword) {
+    return;
+  }
+
+  try {
+
+    const response =
+      await fetch("/api/team/stats", {
+        headers: {
+          "x-team-password": teamPassword
+        }
+      });
+
+    const data =
+      await response.json();
+
+    if (!response.ok || !data.success) {
+
+      alert(
+        data.error ||
+        "Dashboard kon niet geladen worden."
+      );
+
+      return;
+    }
+
+    renderDashboard(data);
+
+  } catch (error) {
+
+    console.error(error);
+
+    alert(
+      "Er is een verbindingsprobleem."
+    );
+  }
+}
+
+
+// =====================================================
+// DASHBOARD WEERGAVE
+// =====================================================
+
+function renderDashboard(data) {
+
+  const financial =
+    data.financial || {};
+
+  const counts =
+    data.counts || {};
+
+  const euro =
+    value =>
+      "€" +
+      Number(value || 0)
+        .toFixed(2)
+        .replace(".", ",");
+
+
+  document.getElementById("revenue").textContent =
+    euro(financial.revenue);
+
+  document.getElementById("costs").textContent =
+    euro(financial.costs);
+
+  document.getElementById("profit").textContent =
+    euro(financial.profit);
+
+  document.getElementById("totalRequests").textContent =
+    counts.total || 0;
+
+  document.getElementById("acceptedRequests").textContent =
+    counts.accepted || 0;
+
+  document.getElementById("rejectedRequests").textContent =
+    counts.rejected || 0;
+
+  document.getElementById("margin").textContent =
+    Number(financial.margin || 0).toFixed(1) + "%";
+
+
+  document.getElementById("overviewRevenue").textContent =
+    euro(financial.revenue);
+
+  document.getElementById("overviewCosts").textContent =
+    euro(financial.costs);
+
+  document.getElementById("overviewProfit").textContent =
+    euro(financial.profit);
+
+  document.getElementById("overviewMargin").textContent =
+    Number(financial.margin || 0).toFixed(1) + "%";
+
+
+  renderRequests(data.requests || []);
+  renderCustomers(data.customers || []);
+  renderCosts(data.costsList || []);
+}
+
+
+// =====================================================
+// AANVRAGEN
+// =====================================================
+
+function renderRequests(requests) {
+
+  const table =
+    document.getElementById("requestsTable");
+
+  if (!requests.length) {
+
+    table.innerHTML = `
+      <tr>
+        <td colspan="7" class="empty">
+          Nog geen aanvragen.
+        </td>
+      </tr>
+    `;
+
+    return;
+  }
+
+  table.innerHTML =
+    requests.map(request => {
+
+      const statusClass =
+        request.status || "pending";
+
+      const statusText =
+        request.status === "accepted"
+          ? "Geaccepteerd"
+          : request.status === "rejected"
+            ? "Geweigerd"
+            : "In behandeling";
+
+      const date =
+        request.createdAt
+          ? new Date(request.createdAt)
+              .toLocaleString("nl-BE")
+          : "-";
+
+      return `
+        <tr>
+
+          <td>
+            <strong>
+              ${escapeHtml(request.name)}
+            </strong>
+          </td>
+
+          <td>
+            ${escapeHtml(request.email)}
+          </td>
+
+          <td>
+            ${escapeHtml(request.phone || "-")}
+          </td>
+
+          <td>
+            ${escapeHtml(request.service)}
+          </td>
+
+          <td>
+            €${Number(request.amount || 0)
+              .toFixed(2)
+              .replace(".", ",")}
+          </td>
+
+          <td>
+            <span class="status ${statusClass}">
+              ${statusText}
+            </span>
+          </td>
+
+          <td>
+            ${date}
+          </td>
+
+        </tr>
+      `;
+
+    }).join("");
+}
+
+
+// =====================================================
+// KLANTEN
+// =====================================================
+
+function renderCustomers(customers) {
+
+  const table =
+    document.getElementById("customersTable");
+
+  if (!customers.length) {
+
+    table.innerHTML = `
+      <tr>
+        <td colspan="5" class="empty">
+          Nog geen klanten.
+        </td>
+      </tr>
+    `;
+
+    return;
+  }
+
+  table.innerHTML =
+    customers.map(customer => {
+
+      const lastVisit =
+        customer.lastVisit
+          ? new Date(customer.lastVisit)
+              .toLocaleDateString("nl-BE")
+          : "-";
+
+      return `
+        <tr>
+
+          <td>
+            <strong>
+              ${escapeHtml(customer.name)}
+            </strong>
+          </td>
+
+          <td>
+            ${escapeHtml(customer.email)}
+          </td>
+
+          <td>
+            ${Number(customer.cleanings || 0)}
+          </td>
+
+          <td>
+            €${Number(customer.revenue || 0)
+              .toFixed(2)
+              .replace(".", ",")}
+          </td>
+
+          <td>
+            ${lastVisit}
+          </td>
+
+        </tr>
+      `;
+
+    }).join("");
+}
+
+
+// =====================================================
+// KOSTEN
+// =====================================================
+
+function renderCosts(costs) {
+
+  const table =
+    document.getElementById("costsTable");
+
+  if (!costs.length) {
+
+    table.innerHTML = `
+      <tr>
+        <td colspan="4" class="empty">
+          Nog geen kosten.
+        </td>
+      </tr>
+    `;
+
+    return;
+  }
+
+  table.innerHTML =
+    costs.map(cost => {
+
+      const date =
+        cost.createdAt
+          ? new Date(cost.createdAt)
+              .toLocaleDateString("nl-BE")
+          : "-";
+
+      return `
+        <tr>
+
+          <td>
+            ${escapeHtml(cost.supplier)}
+          </td>
+
+          <td>
+            ${escapeHtml(cost.description)}
+          </td>
+
+          <td>
+            €${Number(cost.amount || 0)
+              .toFixed(2)
+              .replace(".", ",")}
+          </td>
+
+          <td>
+            ${date}
+          </td>
+
+        </tr>
+      `;
+
+    }).join("");
+}
+
+
+// =====================================================
+// KOST TOEVOEGEN
+// =====================================================
+
+async function addCost(event) {
+
+  event.preventDefault();
+
+  const supplier =
+    document.getElementById("supplier")
+      .value.trim();
+
+  const description =
+    document.getElementById("description")
+      .value.trim();
+
+  const amount =
+    document.getElementById("costAmount")
+      .value;
+
+  const message =
+    document.getElementById("costMessage");
+
+
+  try {
+
+    const response =
+      await fetch("/api/team/cost", {
+
+        method: "POST",
+
+        headers: {
+          "Content-Type": "application/json",
+          "x-team-password": teamPassword
+        },
+
+        body: JSON.stringify({
+          supplier,
+          description,
+          amount
+        })
+      });
+
+
+    const data =
+      await response.json();
+
+
+    if (!response.ok || !data.success) {
+
+      message.textContent =
+        data.error ||
+        "Kosten konden niet worden opgeslagen.";
+
+      return;
+    }
+
+
+    message.textContent =
+      "✅ Kosten opgeslagen.";
+
+
+    document
+      .getElementById("supplier")
+      .value = "";
+
+    document
+      .getElementById("description")
+      .value = "";
+
+    document
+      .getElementById("costAmount")
+      .value = "";
+
+
+    await loadDashboard();
+
+
+  } catch (error) {
+
+    console.error(error);
+
+    message.textContent =
+      "❌ Er ging iets mis.";
+  }
+}
+
+
+// =====================================================
+// UITLOGGEN
+// =====================================================
+
+function logout() {
+
+  teamPassword = "";
+
+  sessionStorage.removeItem(
+    "cleanRideTeamPassword"
+  );
+
+  document
+    .getElementById("dashboard")
+    .classList.add("hidden");
+
+  document
+    .getElementById("loginScreen")
+    .classList.remove("hidden");
+
+  document
+    .getElementById("teamPassword")
+    .value = "";
+}
+
+
+// =====================================================
+// HTML VEILIG MAKEN
+// =====================================================
+
+function escapeHtml(value) {
+
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
 
 </script>
 
 </body>
 </html>
+```
