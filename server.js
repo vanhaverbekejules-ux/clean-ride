@@ -160,16 +160,51 @@ async function initDatabase() {
   `);
 
   /*
-    Voor bestaande databases:
-    supplier toevoegen als die kolom nog niet bestaat.
+    Bestaande databases automatisch bijwerken.
+    Hierdoor blijven bestaande gegevens behouden.
   */
+
+  await pool.query(`
+    ALTER TABLE requests
+    ADD COLUMN IF NOT EXISTS bike TEXT
+  `);
+
+  await pool.query(`
+    ALTER TABLE requests
+    ADD COLUMN IF NOT EXISTS mud BOOLEAN DEFAULT FALSE
+  `);
+
+  await pool.query(`
+    ALTER TABLE requests
+    ADD COLUMN IF NOT EXISTS price NUMERIC DEFAULT 0
+  `);
+
+  await pool.query(`
+    ALTER TABLE requests
+    ADD COLUMN IF NOT EXISTS date TEXT
+  `);
+
+  await pool.query(`
+    ALTER TABLE requests
+    ADD COLUMN IF NOT EXISTS decision_token TEXT
+  `);
+
+  await pool.query(`
+    ALTER TABLE requests
+    ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'pending'
+  `);
+
+  await pool.query(`
+    ALTER TABLE requests
+    ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT NOW()
+  `);
 
   await pool.query(`
     ALTER TABLE costs
     ADD COLUMN IF NOT EXISTS supplier TEXT
   `);
 
-  console.log("✅ Database gecontroleerd.");
+  console.log("✅ Database gecontroleerd en bijgewerkt.");
 }
 
 
